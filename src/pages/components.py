@@ -5,7 +5,7 @@ def menu():
         with ui.menu():
             ui.menu_item('Homepage', on_click=lambda: ui.navigate.to('/'))
             ui.menu_item('Initialization', on_click=lambda: ui.navigate.to('/initialization'))
-            ui.menu_item('Add User')
+            ui.menu_item('Add User', on_click=lambda: ui.navigate.to('/add_user'))
             with ui.menu_item('View/Edit User', auto_close=False):
                 with ui.item_section().props('side'):
                     ui.icon('keyboard_arrow_right')

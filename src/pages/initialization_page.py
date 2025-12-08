@@ -112,7 +112,7 @@ def initialization_page():
 
     top_bar('Initialization Page')
     
-    with ui.row().classes('justify-center mt-5 gap-20'):
+    with ui.row().classes('justify-center mt-5 gap-15'):
         with ui.column().classes('items-right mt-10 gap-4'):
             update_credential_button = ui.button('Update Credentials', on_click=lambda: update_page()).props('color=orange')
             setup_credential_button = ui.button('Setup Credentials', on_click=lambda: setup_page()).props('color=orange')
