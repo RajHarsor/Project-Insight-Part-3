@@ -1,18 +1,135 @@
 from nicegui import ui
 from components import top_bar
-from src.methods.env_initialize import check_env_file_exists, check_env_variables
+from src.methods.env_initialize import check_env_file_exists, check_env_variables, create_env_file, update_env_variable, read_env_variables
 
 def initialization_page():
+    
+    setup_container = None
+
+    def update_page():
+        nonlocal setup_container
+        update_credential_button.disable()
+        setup_credential_button.disable()
+        
+        if setup_container:
+            setup_container.clear()
+            env_var_display_container.clear()
+        
+        with setup_container:
+            with ui.row().classes('justify-center mt-5 gap-10 justify-start'):
+                with ui.column().classes('items-right mt-5 gap-1'):
+                    ui.label('Choose Variable to Update').classes('text-lg font-bold mb-2 w-100')
+                    variable_select = ui.select(['AWS Access Key ID (aws_access_key_id)', 'AWS Secret Access Key (aws_secret_access_key)', 'DynamoDB Table Name (insight_p3_table_name)',
+                                                    'Qualtrics Survey 1A Path (qualtrics_survey_p3_1a_path)', 'Qualtrics Survey 1B Path (qualtrics_survey_p3_1b_path)',
+                                                    'Qualtrics Survey 2A Path (qualtrics_survey_p3_2a_path)', 'Qualtrics Survey 2B Path (qualtrics_survey_p3_2b_path)',
+                                                    'Qualtrics Survey 2C Path (qualtrics_survey_p3_2c_path)', 'Qualtrics Survey 3 Path (qualtrics_survey_p3_3_path)',
+                                                    'Participant Database Path (participant_db)']).classes('w-100')
+                new_value_input = ui.input(label='New Value').classes('w-100 mt-15')
+
+                def on_submit():
+                    update_env_variable(variable_name(), new_value_input.value)
+                    ui.notify(f'Updated {variable_name()} successfully!', type='positive', close_button=True, timeout=5000)
+                    env_vars = read_env_variables()
+                    env_display_container.clear()
+                    with env_display_container:
+                        with ui.column().classes('mt-5'):
+                            ui.label('Current Environment Variables:').classes('text-lg font-bold mb-2 w-100')
+                            for key, value in env_vars.items():
+                                ui.label(f'- {key}: {value}')
+
+                # get the variable name from the select value by extracting the text inside the parentheses
+                variable_name = lambda: variable_select.value.split('(')[1].strip(')')
+                submit_button = ui.button('Submit', on_click=on_submit).props('color=green').classes('mt-10 w-full')
+                submit_button.disable()
+                
+                def validate_new_input():
+                    if new_value_input.value and len(new_value_input.value) > 2:
+                        submit_button.enable()
+                    else:
+                        submit_button.disable()
+                
+                new_value_input.on_value_change(validate_new_input)
+                
+            env_display_container = ui.column().classes('mt-5')
+
+
+                    
+    def setup_page():
+        nonlocal setup_container
+        update_credential_button.disable()
+        setup_credential_button.disable()
+        
+        if setup_container:
+            setup_container.clear()
+            env_var_display_container.clear()
+        
+        with setup_container:
+            with ui.row().classes('justify-center mt-5 gap-30'):
+                with ui.column().classes('items-right mt-5 gap-1'):
+                    ui.label('Credential Setup').classes('text-lg font-bold mb-2')
+                    aws_access_key = ui.input(label='AWS Access Key ID').classes('w-100')
+                    aws_secret_key = ui.input(label='AWS Secret Access Key').classes('w-100')
+                    dynamodb_table_name = ui.input(label='DynamoDB Table Name').classes('w-100')
+                with ui.column().classes('items-right mt-2 gap-1'):
+                    ui.label('Optional Settings - Needed for Reports').classes('text-lg font-bold mb-2')
+                    survey_1a_path = ui.input(label='Survey 1A Path').classes('w-100')
+                    survey_1b_path = ui.input(label='Survey 1B Path').classes('w-100')
+                    survey_2a_path = ui.input(label='Survey 2a Path').classes('w-100')
+                    survey_2b_path = ui.input(label='Survey 2b Path').classes('w-100')
+                    survey_2c_path = ui.input(label='Survey 2c Path').classes('w-100')
+                    survey_3_path = ui.input(label='Survey 3 Path').classes('w-100')
+                    participant_db_path = ui.input(label='Participant Database Path').classes('w-100')
+            
+            def validate_mandatory_fields():
+                if aws_access_key.value and aws_secret_key.value and dynamodb_table_name.value:
+                    submit_button.enable()
+                else:
+                    submit_button.disable()
+            
+            def handle_submit():
+                submit_button.disable()
+                create_env_file(
+                    aws_access_key.value,
+                    aws_secret_key.value,
+                    dynamodb_table_name.value,
+                    survey_1a_path.value,
+                    survey_1b_path.value,
+                    survey_2a_path.value,
+                    survey_2b_path.value,
+                    survey_2c_path.value,
+                    survey_3_path.value,
+                    participant_db_path.value
+                )
+                ui.notify('Environment file created successfully!', type='positive', close_button=True, timeout=5000)
+            
+            # Add validation on input change
+            aws_access_key.on('update:model-value', lambda: validate_mandatory_fields())
+            aws_secret_key.on('update:model-value', lambda: validate_mandatory_fields())
+            dynamodb_table_name.on('update:model-value', lambda: validate_mandatory_fields())
+            
+            submit_button = ui.button('Submit', on_click=handle_submit).props('color=green').classes('mt-15 w-full')
+            submit_button.disable()  # Start disabled
+
     top_bar('Initialization Page')
     
-    with ui.row().classes('w-full justify-between items-center mt-8'):
-        update_credential_button = ui.button('Update Credentials', on_click=lambda: ui.navigate.to('/initialization/update_credentials')).props('color=orange')
-        setup_credential_button = ui.button('Setup Credentials', on_click=lambda: ui.navigate.to('/initialization/setup_credentials')).props('color=orange')
+    with ui.row().classes('justify-center mt-5 gap-20'):
+        with ui.column().classes('items-right mt-10 gap-4'):
+            update_credential_button = ui.button('Update Credentials', on_click=lambda: update_page()).props('color=orange')
+            setup_credential_button = ui.button('Setup Credentials', on_click=lambda: setup_page()).props('color=orange')
+        setup_container = ui.column()
+        env_var_display_container = ui.column().classes('text-left')
+        # Get current env variables and display
+        env_vars = read_env_variables()
+        with env_var_display_container:
+            with ui.column().classes('mt-5'):
+                ui.label('Current Environment Variables:').classes('text-lg font-bold mb-2 w-100')
+                for key, value in env_vars.items():
+                    ui.label(f'- {key}: {value}')
     
     update_credential_button.disable()
     setup_credential_button.disable()
     
-    async def validate_env_variables():
+    def validate_env_variables():
         exists = check_env_file_exists()
         var_exists, var_message = check_env_variables()
         
@@ -27,6 +144,7 @@ def initialization_page():
         else:
             update_credential_button.disable()
             setup_credential_button.enable()
-            ui.notify('Environment file does not exist.', type='negative', close_button=True, timeout=5000)
+            ui.notify('Environment file does not exist. Please set up your credentials.', type='negative', close_button=True, timeout=5000)
     
+        
     ui.timer(0.5, validate_env_variables, once=True)

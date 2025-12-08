@@ -30,7 +30,7 @@ def top_bar(page_title: str):
             menu()
             
         with ui.row().classes('justify-center'):
-            ui.label(page_title).classes('text-h6')  
+            ui.label(page_title).classes('text-h5')  
                 
         with ui.row().classes('justify-end'):
             ui.switch('Dark Mode').bind_value(dark)
