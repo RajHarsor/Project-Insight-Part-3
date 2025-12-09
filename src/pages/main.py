@@ -11,6 +11,8 @@ from src.pages.initialization_page import initialization_page
 from src.pages.add_user_page import add_user_page
 from src.pages.confirm_add_user_page import confirm_add_user_page
 from src.pages.view_edit_user_page import view_edit_user_page
+from src.pages.delete_user_page import delete_user_page
+from src.pages.send_sms_page import send_sms_page
 
 def root():
     pages = ui.sub_pages()
@@ -18,6 +20,8 @@ def root():
     pages.add('/add_user', add_user_page)
     pages.add('/confirm_add_user', confirm_add_user_page)
     pages.add('/view_edit_user', view_edit_user_page)
+    pages.add('/delete_user', delete_user_page)
+    pages.add('/send_sms', send_sms_page)
     pages.add('/', main_page)
 
 def main_page():

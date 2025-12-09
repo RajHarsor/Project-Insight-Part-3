@@ -11,8 +11,10 @@ def confirm_add_user_page(participant_id, start_date, phone_number, lb_link, sch
     end_date = datetime.strptime(start_date, '%Y-%m-%d') + timedelta(days=13)
     end_date = end_date.strftime('%Y-%m-%d')
     
-    phone_number = f"+1{phone_number}" if not phone_number.startswith('+') else phone_number
-    
+    phone_number = phone_number.strip()
+    if not phone_number.startswith('+'):
+        phone_number = f"+{phone_number}"
+        
     # Get Schedule Details from json
     path = 'src/methods/schedules.json'
     with open(path, 'r') as file:
@@ -25,6 +27,7 @@ def confirm_add_user_page(participant_id, start_date, phone_number, lb_link, sch
         phase_1_end = datetime.strptime(start_date, '%Y-%m-%d') + timedelta(days=3)
         phase_2_end = phase_1_end + timedelta(days=8)
         phase_3_end = phase_2_end + timedelta(days=2)
+        
         return phase_1_end, phase_2_end, phase_3_end
     
     def on_submit_handle():

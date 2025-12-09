@@ -121,3 +121,66 @@ def update_user_info(participant_id, attribute_name, new_value):
     except Exception as e:
         print(f"Error updating user in database: {e}")
         return False, f"Error updating user in database: {e}"
+
+def delete_user_from_database(participant_id):
+    """
+    Delete a user from the AWS DynamoDB table.
+    
+    Args:
+        participant_id (int): The participant ID.
+    Returns:
+        bool: True if the deletion was successful, False otherwise.
+        message (str): Success or error message.
+    """
+    env_vars = read_env_variables()
+    
+    Session = boto3.Session(
+        aws_access_key_id=env_vars['aws_access_key_id'],
+        aws_secret_access_key=env_vars['aws_secret_access_key'],
+        region_name=env_vars['region']
+    )
+    dynamodb = Session.resource('dynamodb')
+    table = dynamodb.Table(env_vars['insight_p3_table_name'])
+    
+    try:
+        table.delete_item(
+            Key={
+                'participant_id': int(participant_id)
+            }
+        )
+        return True, "User deleted successfully."
+    except Exception as e:
+        print(f"Error deleting user from database: {e}")
+        return False, f"Error deleting user from database: {e}"
+
+def send_test_sms(participant_phone_number, message):
+    """
+    Send a test SMS to the specified phone number using AWS SNS.
+    
+    Args:
+        participant_phone_number (str): The participant's phone number in E.164 format.
+        message (str): The message to send.
+    
+    Returns:
+        bool: True if the SMS was sent successfully, False otherwise.
+        message (str): Success or error message.
+    """
+    env_vars = read_env_variables()
+    
+    Session = boto3.Session(
+        aws_access_key_id=env_vars['aws_access_key_id'],
+        aws_secret_access_key=env_vars['aws_secret_access_key'],
+        region_name=env_vars['region']
+    )
+    
+    sns = Session.client('sns')
+    
+    try:
+        sns.publish(
+            PhoneNumber=participant_phone_number,
+            Message=message
+        )
+        return True, "SMS sent successfully."
+    except Exception as e:
+        print(f"Error sending test SMS: {e}")
+        return False, f"Error sending test SMS: {e}"
