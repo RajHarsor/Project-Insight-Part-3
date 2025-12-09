@@ -1,0 +1,20 @@
+{
+    "Early Bird Schedule": {
+        "Send Time 1": "08:00 AM",
+        "Send Time 2": "12:00 PM",
+        "Send Time 3": "04:00 PM"
+    },
+
+    "Standard Schedule": {
+        "Send Time 1": "10:00 AM",
+        "Send Time 2": "02:00 PM",
+        "Send Time 3": "06:00 PM"
+    },
+
+    "Night Owl Schedule": {
+        "Send Time 1": "12:00 PM",
+        "Send Time 2": "04:00 PM",
+        "Send Time 3": "08:00 PM"
+    }
+}
+

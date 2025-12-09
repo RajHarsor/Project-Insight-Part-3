@@ -33,7 +33,7 @@ def initialization_page():
                     env_display_container.clear()
                     with env_display_container:
                         with ui.column().classes('mt-5'):
-                            ui.label('Current Environment Variables:').classes('text-lg font-bold mb-2 w-100')
+                            ui.label('New Environment Variables:').classes('text-lg font-bold mb-2 w-100')
                             for key, value in env_vars.items():
                                 ui.label(f'- {key}: {value}')
 

@@ -5,19 +5,18 @@ def menu():
         with ui.menu():
             ui.menu_item('Homepage', on_click=lambda: ui.navigate.to('/'))
             ui.menu_item('Initialization', on_click=lambda: ui.navigate.to('/initialization'))
-            ui.menu_item('Add User', on_click=lambda: ui.navigate.to('/add_user'))
-            with ui.menu_item('View/Edit User', auto_close=False):
+            ui.menu_item('Add Participant', on_click=lambda: ui.navigate.to('/add_user'))
+            with ui.menu_item('View/Edit Participant', auto_close=False):
                 with ui.item_section().props('side'):
                     ui.icon('keyboard_arrow_right')
                 with ui.menu().props('anchor="top end" self="top start" auto-close'):
-                    ui.menu_item("View User Details")
-                    ui.menu_item("Edit User Information")
-                    ui.menu_item("Delete User")
+                    ui.menu_item("View/Edit Participant Details", on_click=lambda: ui.navigate.to('/view_edit_user'))
+                    ui.menu_item("Delete Participant")
             with ui.menu_item('Participant Checks', auto_close=False):
                 with ui.item_section().props('side'):
                     ui.icon('keyboard_arrow_right')
                 with ui.menu().props('anchor="top end" self="top start" auto-close'):
-                    ui.menu_item("Generate Daily Report")
+                    ui.menu_item("Daily Report")
                     ui.menu_item("Check Individual Compliance")
             ui.menu_item('Send Test SMS')
 
