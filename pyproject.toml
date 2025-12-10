@@ -1,7 +1,7 @@
 [project]
 name = "project-insight-part-3"
 version = "0.1.0"
-description = "Add your description here"
+description = "Project INSIGHT Part 3 Application"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -11,3 +11,9 @@ dependencies = [
     "polars>=1.36.0",
     "pywebview>=6.1",
 ]
+
+[project.scripts]
+insight-part3 = "src.main:main"
+
+[tool.hatch.build]
+sources = ["src"]
