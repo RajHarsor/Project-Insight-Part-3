@@ -4,9 +4,10 @@ from src.methods.aws_functions import get_user_info, send_test_sms
 
 def send_sms_page():
     
-    def handle_search_for_participant(participant_id, message_type): #FIXME: Doesn't work for some reason, nothing happens on button click
+    def handle_search_for_participant(participant_id, message_type): 
         
         def handle_send_test_sms(phone_number, message):
+            
             success, msg = send_test_sms(phone_number, message)
             if success:
                 ui.notify(msg, type='positive', close_button=True, timeout=5000)
@@ -23,14 +24,16 @@ def send_sms_page():
             ui.notify(f'Found {participant_id}!', type='positive', close_button=True, timeout=5000)
             
             with participant_phone_number_container:
-                ui.markdown(f'#### Participant Phone Number: {phone_number}')
+                ui.label(f'Participant Phone Number: {phone_number}').classes('text-lg font-bold')
                 
                 if message_type == 'Custom Message':
-                    message = ui.textarea(label='Enter Custom Message').classes('w-100')
+                    message_input = ui.textarea(label='Enter Custom Message').classes('w-100')
+                    ui.button('Send Test SMS', on_click=lambda: handle_send_test_sms(phone_number, message_input.value)).props('color=green').classes('w-100')
                 elif message_type == 'Hello from the Project INSIGHT Team! This is a test message.':
-                    message = 'Hello from the Project INSIGHT Team! This is a test message.'
+                    ui.label('Using Default Message: "Hello from the Project INSIGHT Team! This is a test message."').classes('text-md italic')
+                    message_text = 'Hello from the Project INSIGHT Team! This is a test message.'
+                    ui.button('Send Test SMS', on_click=lambda: handle_send_test_sms(phone_number, message_text)).props('color=green').classes('w-100')
                 
-                ui.button('Send Test SMS', on_click=lambda: handle_send_test_sms(phone_number, message)).props('color=green').classes('w-100')
         else:
             ui.notify(f'Participant ID {participant_id} not found.', type='negative', close_button=True, timeout=5000)           
             
