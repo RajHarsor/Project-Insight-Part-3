@@ -22,8 +22,7 @@ def initialization_page():
                     variable_select = ui.select(['AWS Access Key ID (aws_access_key_id)', 'AWS Secret Access Key (aws_secret_access_key)', 'DynamoDB Table Name (insight_p3_table_name)',
                                                     'Qualtrics Survey 1A Path (qualtrics_survey_p3_1a_path)', 'Qualtrics Survey 1B Path (qualtrics_survey_p3_1b_path)',
                                                     'Qualtrics Survey 2A Path (qualtrics_survey_p3_2a_path)', 'Qualtrics Survey 2B Path (qualtrics_survey_p3_2b_path)',
-                                                    'Qualtrics Survey 2C Path (qualtrics_survey_p3_2c_path)', 'Qualtrics Survey 3 Path (qualtrics_survey_p3_3_path)',
-                                                    'Participant Database Path (participant_db)']).classes('w-100')
+                                                    'Qualtrics Survey 3 Path (qualtrics_survey_p3_3_path)','Participant Database Path (participant_db)']).classes('w-100')
                 new_value_input = ui.input(label='New Value').classes('w-100 mt-15')
 
                 def on_submit():
@@ -76,7 +75,6 @@ def initialization_page():
                     survey_1b_path = ui.input(label='Survey 1B Path').classes('w-100')
                     survey_2a_path = ui.input(label='Survey 2a Path').classes('w-100')
                     survey_2b_path = ui.input(label='Survey 2b Path').classes('w-100')
-                    survey_2c_path = ui.input(label='Survey 2c Path').classes('w-100')
                     survey_3_path = ui.input(label='Survey 3 Path').classes('w-100')
                     participant_db_path = ui.input(label='Participant Database Path').classes('w-100')
             
@@ -96,7 +94,6 @@ def initialization_page():
                     survey_1b_path.value,
                     survey_2a_path.value,
                     survey_2b_path.value,
-                    survey_2c_path.value,
                     survey_3_path.value,
                     participant_db_path.value
                 )
