@@ -32,7 +32,7 @@ def initialization_page():
                     env_display_container.clear()
                     with env_display_container:
                         with ui.column().classes('mt-5'):
-                            ui.label('New Environment Variables:').classes('text-lg font-bold mb-2 w-100')
+                            ui.label('New Environment Variables:').classes('text-lg font-bold mb-2 w-100 outline outline-cyan-500 outline-offset-10 rounded-lg')
                             for key, value in env_vars.items():
                                 ui.label(f'- {key}: {value}')
 
@@ -114,7 +114,7 @@ def initialization_page():
             update_credential_button = ui.button('Update Credentials', on_click=lambda: update_page()).props('color=orange')
             setup_credential_button = ui.button('Setup Credentials', on_click=lambda: setup_page()).props('color=orange')
         setup_container = ui.column()
-        env_var_display_container = ui.column().classes('text-left')
+        env_var_display_container = ui.column().classes('text-left outline outline-cyan-500 outline-offset-10 rounded-lg')
         # Get current env variables and display
         env_vars = read_env_variables()
         with env_var_display_container:
