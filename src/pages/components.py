@@ -27,8 +27,9 @@ def top_bar(page_title: str):
     with ui.row().classes('w-screen items-center no-wrap justify-between'):
         
         with ui.row().classes('justify-start'):
-            menu()
             ui.button(icon='home', on_click=lambda: ui.navigate.to('/')).props('flat')
+            menu()
+            
             
         with ui.row().classes('justify-center'):
             ui.label(page_title).classes('text-h5')  
