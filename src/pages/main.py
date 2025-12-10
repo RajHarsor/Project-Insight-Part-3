@@ -26,5 +26,23 @@ def root():
 
 def main_page():
     top_bar('Project INSIGHT Part 3 Dashboard')
+    
+    with ui.row().classes('w-full justify-center'):
+        with ui.column().classes('w-100'):
+            ui.label('Participant Progress Overview').classes('text-lg font-bold mb-5')
+            # Placeholder for participant progress overview content
+        with ui.column().classes('w-100'):
+            ui.label('Recent Activities').classes('text-lg font-bold mb-5')
+            # Placeholder for recent activities content
+        with ui.column().classes('w-100 outline outline-orange-500 outline-offset-4 rounded-lg'):
+            ui.label('Useful Links').classes('text-lg font-bold mb-5')
+            
+            ui.link('Project INSIGHT Website', 'https://projectinsighthealth.org/')
+            ui.link('Project INSIGHT Google Drive', 'https://drive.google.com/drive/folders/1dHpQ_wOzshmQXk1aQO-cH4GCdB1QiGup?usp=drive_link')
+            ui.link('Qualtrics', 'https://rowan.qualtrics.com/')
+            ui.link('Project Repository', 'https://github.com/RajHarsor/Project-Insight-Part-3')
+            ui.link('AWS Login', 'https://rowan.awsapps.com/start/')
+            ui.link('NiceGUI Documentation', 'https://nicegui.io/documentation')
+            ui.link('Tailwind CSS Documentation', 'https://tailwindcss.com/docs')
 
 ui.run(root, port=8081)

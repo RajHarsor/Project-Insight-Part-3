@@ -41,7 +41,7 @@ def send_sms_page():
     
     top_bar('Send Test SMS')
     
-    with ui.row().classes('w-full justify-center'):
+    with ui.row().classes('w-full justify-center gap-15'):
         with ui.column().classes():
             participant_id_input = ui.input(label='Participant ID').classes('w-100')
             message_type = ui.select(label='Message Type', options=['Hello from the Project INSIGHT Team! This is a test message.', 'Custom Message']).classes('w-100')
