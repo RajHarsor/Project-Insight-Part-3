@@ -34,7 +34,7 @@ def main_page():
         with ui.column().classes('w-100'):
             ui.label('Recent Activities').classes('text-lg font-bold mb-5')
             # Placeholder for recent activities content
-        with ui.column().classes('w-100 outline outline-orange-500 outline-offset-4 rounded-lg'):
+        with ui.column().classes('w-100 outline outline-cyan-500 outline-offset-4 rounded-lg'):
             ui.label('Useful Links').classes('text-lg font-bold mb-5')
             
             ui.link('Project INSIGHT Website', 'https://projectinsighthealth.org/')
