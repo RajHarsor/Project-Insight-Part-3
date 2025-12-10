@@ -15,7 +15,7 @@ def send_sms_page():
         
         participant_phone_number_container.clear()
         
-        response = get_user_info(participant_id, message_type)
+        response, msg = get_user_info(participant_id)
         
         if response:
             # Extract phone number
@@ -29,10 +29,11 @@ def send_sms_page():
                     message = ui.textarea(label='Enter Custom Message').classes('w-100')
                 elif message_type == 'Hello from the Project INSIGHT Team! This is a test message.':
                     message = 'Hello from the Project INSIGHT Team! This is a test message.'
+                
+                ui.button('Send Test SMS', on_click=lambda: handle_send_test_sms(phone_number, message)).props('color=green').classes('w-100')
         else:
             ui.notify(f'Participant ID {participant_id} not found.', type='negative', close_button=True, timeout=5000)           
             
-            send_sms_button = ui.button('Send Test SMS', on_click=lambda: handle_send_test_sms(phone_number, message)).props('color=green').classes('w-100')
         
     
     top_bar('Send Test SMS')
