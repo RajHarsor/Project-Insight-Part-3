@@ -12,6 +12,9 @@ def view_edit_user_page():
         if user_info:
             # Convert message_randomizer list to string for better display
             if isinstance(user_info.get("message_randomizer"), list):
+                print(user_info["message_randomizer"])
+                print(user_info['message_randomizer'][0])
+                print(user_info['message_randomizer'][1])
                 user_info["message_randomizer"] = ', '.join(map(str, user_info["message_randomizer"]))
             with info_container:
                 ui.markdown('#### Participant Information:')
@@ -67,13 +70,13 @@ def view_edit_user_page():
                             attribute_name_stripped = attribute_select.value.split('(')[-1].rstrip(')')
                             new_value = ui.input(label='Insert New Value').classes('w-100')
                             ui.button('Submit Changes', on_click=lambda: handle_submit_changes(participant_id_input.value, attribute_name_stripped, new_value.value)).props('color=red').classes('w-100')
-                        elif attribute_select.value == 'Schedule Type (schedule)':
+                        elif attribute_select.value == 'Schedule Type (schedule_type)':
                             attribute_name_stripped = attribute_select.value.split('(')[-1].rstrip(')')
                             new_value = ui.select(label='Select New Schedule', options=['Early Bird Schedule', 'Standard Schedule', 'Night Owl Schedule']).classes('w-100')
                             ui.button('Submit Changes', on_click=lambda: handle_submit_changes(participant_id_input.value, attribute_name_stripped, new_value.value)).props('color=red').classes('w-100')
                 
                 ui.markdown('#### Edit Participant Attributes:')
-                attribute_select = ui.select(label='Select Attribute to Edit', options=['Start Date (start_date)', 'End Date (end_date)', 'Phone Number (phone_number)', 'Leaderboard Link (leaderboard_link)', 'Schedule Type (schedule)'], on_change=handle_input).classes('w-100')
+                attribute_select = ui.select(label='Select Attribute to Edit', options=['Start Date (start_date)', 'End Date (end_date)', 'Phone Number (phone_number)', 'Leaderboard Link (leaderboard_link)', 'Schedule Type (schedule_type)'], on_change=handle_input).classes('w-100')
         else:
             ui.notify(message, type='negative', close_button=True, timeout=5000)
     
