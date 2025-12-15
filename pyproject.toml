@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
-insight-part3 = "project_insight_part_3.main:main"
+insight-part3 = "project_insight_part_3.pages.main:main"
 
-[tool.hatch.build]
-sources = ["src"]
+[tool.hatch.build.targets.wheel]
+packages = ["src/project_insight_part_3"]
