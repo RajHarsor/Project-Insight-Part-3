@@ -6,7 +6,7 @@ sys.path.insert(0, project_root)
 
 from nicegui import ui
 
-from components import top_bar
+from src.project_insight_part_3.pages.components import top_bar
 from src.project_insight_part_3.pages.initialization_page import initialization_page
 from src.project_insight_part_3.pages.add_user_page import add_user_page
 from src.project_insight_part_3.pages.confirm_add_user_page import confirm_add_user_page

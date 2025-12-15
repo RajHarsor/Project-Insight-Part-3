@@ -1,6 +1,6 @@
 from nicegui import ui
 from components import top_bar
-from src.methods.env_initialize import check_env_file_exists, check_env_variables, create_env_file, update_env_variable, read_env_variables
+from src.project_insight_part_3.methods.env_initialize import check_env_file_exists, check_env_variables, create_env_file, update_env_variable, read_env_variables
 
 def initialization_page():
     

@@ -1,6 +1,6 @@
 from nicegui import ui
-from src.pages.components import top_bar
-from src.methods.aws_functions import get_user_info, update_user_info
+from src.project_insight_part_3.pages.components import top_bar
+from src.project_insight_part_3.methods.aws_functions import get_user_info, update_user_info
 import re
 
 def view_edit_user_page():
