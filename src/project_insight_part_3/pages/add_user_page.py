@@ -1,5 +1,5 @@
 from nicegui import ui
-from components import top_bar
+from .components import top_bar
 from datetime import datetime
 import re
 

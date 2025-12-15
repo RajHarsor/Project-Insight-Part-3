@@ -1,10 +1,10 @@
 from nicegui import ui
-from components import top_bar
+from .components import top_bar
 from datetime import datetime, timedelta
 import polars as pl
 import random
 import json
-from src.project_insight_part_3.methods.aws_functions import add_user_to_database
+from ..methods.aws_functions import add_user_to_database
 
 def confirm_add_user_page(participant_id, start_date, phone_number, lb_link, schedule):
     # Calculate end date as start date + 13 days

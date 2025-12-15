@@ -1,6 +1,6 @@
 [project]
 name = "project-insight-part-3"
-version = "0.2.3a"
+version = "0.2.3b"
 description = "Project INSIGHT Part 3 Application"
 readme = "README.md"
 requires-python = ">=3.12"

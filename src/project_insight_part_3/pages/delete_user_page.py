@@ -1,6 +1,6 @@
 from nicegui import ui
-from src.project_insight_part_3.pages.components import top_bar
-from src.project_insight_part_3.methods.aws_functions import get_user_info, delete_user_from_database
+from .components import top_bar
+from ..methods.aws_functions import get_user_info, delete_user_from_database
 
 def delete_user_page():
     

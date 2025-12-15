@@ -1,6 +1,6 @@
 from nicegui import ui
-from src.project_insight_part_3.pages.components import top_bar
-from src.project_insight_part_3.methods.aws_functions import get_user_info, send_test_sms
+from .components import top_bar
+from ..methods.aws_functions import get_user_info, send_test_sms
 
 def send_sms_page():
     
