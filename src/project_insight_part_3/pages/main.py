@@ -31,10 +31,7 @@ def main_page():
             ui.label('Useful Links').classes('text-lg font-bold mb-5')
 
             ui.link('Project INSIGHT Website', 'https://projectinsighthealth.org/')
-            ui.link(
-                'Project INSIGHT Google Drive',
-                'https://drive.google.com/drive/folders/1dHpQ_wOzshmQXk1aQO-cH4GCdB1QiGup?usp=drive_link',
-            )
+            ui.link('Project INSIGHT Google Drive','https://drive.google.com/drive/folders/1dHpQ_wOzshmQXk1aQO-cH4GCdB1QiGup?usp=drive_link')
             ui.link('Qualtrics', 'https://rowan.qualtrics.com/')
             ui.link('Project Repository', 'https://github.com/RajHarsor/Project-Insight-Part-3')
             ui.link('AWS Login', 'https://rowan.awsapps.com/start/')
