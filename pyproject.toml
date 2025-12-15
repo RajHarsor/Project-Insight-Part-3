@@ -1,6 +1,6 @@
 [project]
 name = "project-insight-part-3"
-version = "0.1.0"
+version = "0.2.0"
 description = "Project INSIGHT Part 3 Application"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
-insight-part3 = "src.main:main"
+insight-part3 = "project_insight_part_3.main:main"
 
 [tool.hatch.build]
 sources = ["src"]
