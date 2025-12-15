@@ -7,12 +7,12 @@ sys.path.insert(0, project_root)
 from nicegui import ui
 
 from components import top_bar
-from src.pages.initialization_page import initialization_page
-from src.pages.add_user_page import add_user_page
-from src.pages.confirm_add_user_page import confirm_add_user_page
-from src.pages.view_edit_user_page import view_edit_user_page
-from src.pages.delete_user_page import delete_user_page
-from src.pages.send_sms_page import send_sms_page
+from src.project_insight_part_3.pages.initialization_page import initialization_page
+from src.project_insight_part_3.pages.add_user_page import add_user_page
+from src.project_insight_part_3.pages.confirm_add_user_page import confirm_add_user_page
+from src.project_insight_part_3.pages.view_edit_user_page import view_edit_user_page
+from src.project_insight_part_3.pages.delete_user_page import delete_user_page
+from src.project_insight_part_3.pages.send_sms_page import send_sms_page
 
 def root():
     pages = ui.sub_pages()
