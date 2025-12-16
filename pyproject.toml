@@ -1,6 +1,6 @@
 [project]
 name = "project-insight-part-3"
-version = "0.2.3b"
+version = "0.2.4"
 description = "Project INSIGHT Part 3 Application"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -17,3 +17,13 @@ insight-part3 = "project_insight_part_3.pages.main:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/project_insight_part_3"]
+include = [
+  "src/project_insight_part_3/**/*.json",
+]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "src/project_insight_part_3/**/*.json",
+  "README.md",
+  "pyproject.toml",
+]

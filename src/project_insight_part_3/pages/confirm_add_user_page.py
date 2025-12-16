@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import polars as pl
 import random
 import json
+from importlib.resources import files
 from ..methods.aws_functions import add_user_to_database
 
 def confirm_add_user_page(participant_id, start_date, phone_number, lb_link, schedule):
@@ -16,10 +17,10 @@ def confirm_add_user_page(participant_id, start_date, phone_number, lb_link, sch
         phone_number = f"+{phone_number}"
         
     # Get Schedule Details from json
-    path = 'src/methods/schedules.json'
-    with open(path, 'r') as file:
+    schedules_path = files("project_insight_part_3.methods").joinpath("schedules.json")
+    with schedules_path.open("r", encoding="utf-8") as file:
         schedules = json.load(file)
-        
+            
         participant_schedule = schedules.get(schedule, {})
         schedule_df = pl.DataFrame(participant_schedule)
     
