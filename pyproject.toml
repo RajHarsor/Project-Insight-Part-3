@@ -11,7 +11,9 @@ requires-python = ">=3.12"
 dependencies = [
     "asyncio>=4.0.0",
     "boto3>=1.42.5",
+    "nbformat>=5.10.4",
     "nicegui>=3.3.1",
+    "plotly>=6.5.0",
     "polars>=1.36.0",
     "pywebview>=6.1",
 ]
