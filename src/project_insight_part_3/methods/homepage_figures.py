@@ -42,9 +42,28 @@ def pie_chart_progress() -> go.Figure:
     labels = ['Pending Start', 'In Progress', 'Completed', 'Participants Left to Recruit']
     values = [not_started_count, in_progress_count, completed_count, participants_left]
     fig = go.Figure(data=[go.Pie(labels=labels, values=values, hole=.3)])
-    fig.update_layout(title_text='Participant Progress Overview', font_size=10)    
-    # Adjust legend size
-    fig.update_layout(legend=dict(font=dict(size=8)))
+    fig.update_layout(
+        title=dict(
+            text= 'Recruitment Progress',
+            x=0.5,
+            xanchor='center',
+            yanchor='top',
+            y=0.95
+        ),
+        font_size=10,
+        height=400,
+        width=350,
+        legend=dict(
+            orientation='h',
+            yanchor='bottom',
+            y=-0.5,           # move legend below chart (adjust as needed)
+            x=0.5,
+            xanchor='center',
+            font=dict(size=10)
+    )
+    )
+
+    fig.update_layout(margin=dict(t=60, b=80))
     # adjust overall pie size
     fig.update_traces(marker=dict(line=dict(color='#000000', width=1)))
     

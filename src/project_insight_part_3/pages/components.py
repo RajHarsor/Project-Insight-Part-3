@@ -24,7 +24,7 @@ def menu():
 def top_bar(page_title: str):
     dark = ui.dark_mode(True)
     
-    with ui.row().classes('w-screen items-center no-wrap justify-between'):
+    with ui.row().classes('w-screen items-center no-wrap justify-between mb-3'):
         
         with ui.row().classes('justify-start'):
             ui.button(icon='home', on_click=lambda: ui.navigate.to('/')).props('flat')

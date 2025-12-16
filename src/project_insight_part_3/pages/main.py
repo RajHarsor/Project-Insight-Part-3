@@ -1,5 +1,6 @@
 from nicegui import ui
 
+from ..methods.homepage_figures import pie_chart_progress
 from .components import top_bar
 from .initialization_page import initialization_page
 from .add_user_page import add_user_page
@@ -22,14 +23,37 @@ def register_pages() -> None:
 def main_page():
     top_bar('Project INSIGHT Part 3 Dashboard')
 
-    with ui.row().classes('w-full justify-center'):
-        with ui.column().classes('w-100'):
-            ui.label('Participant Progress Overview').classes('text-lg font-bold mb-5')
-        with ui.column().classes('w-100'):
+    with ui.row().classes('w-full justify-center gap-10'):
+            
+        with ui.column().classes('w-100 outline outline-cyan-500 outline-offset-10 rounded-lg items-center'):
             ui.label('Recent Activities').classes('text-lg font-bold mb-5')
-        with ui.column().classes('w-100 outline outline-cyan-500 outline-offset-10 rounded-lg'):
-            ui.label('Useful Links').classes('text-lg font-bold mb-5')
+        
+        with ui.column().classes('w-100 outline outline-cyan-500 outline-offset-10 rounded-lg items-center'):
+            ui.label('Participant Progress Overview').classes('text-lg font-bold justify-left')
 
+            fig_container = ui.column().classes('w-100 h-auto items-center justify-center mr-7')
+                
+            def update_content():
+                fig_container.clear()
+                current = page_number.value if hasattr(page_number, 'value') else 1
+                if current == 1:
+                    with fig_container:
+                        fig = pie_chart_progress()
+                        ui.plotly(fig).classes('w-80 h-auto')
+                elif current == 2:
+                    with fig_container:
+                        # Phase Analysis of those in Progress
+                        ui.label('No additional figures available.').classes('w-full h-auto flex items-center justify-center text-gray-500')
+                elif current == 3:
+                    with fig_container:
+                        # Recruitment over time
+                        ui.label('No additional figures available.').classes('w-full h-auto flex items-center justify-center text-gray-500')
+                
+            page_number = ui.pagination(1,3, direction_links=True, on_change=update_content).classes('justify-center items-center')
+            update_content()
+
+        with ui.column().classes('w-100 outline outline-cyan-500 outline-offset-10 rounded-lg items-center'):
+            ui.label('Useful Links').classes('text-lg font-bold')
             ui.link('Project INSIGHT Website', 'https://projectinsighthealth.org/')
             ui.link('Project INSIGHT Google Drive','https://drive.google.com/drive/folders/1dHpQ_wOzshmQXk1aQO-cH4GCdB1QiGup?usp=drive_link')
             ui.link('Qualtrics', 'https://rowan.qualtrics.com/')
@@ -41,7 +65,7 @@ def main_page():
 
 def main() -> None:
     register_pages()
-    ui.run(port=8081, reload=False)
+    ui.run(port=8081)
 
 
 if __name__ in {"__main__", "__mp_main__"}:
