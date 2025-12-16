@@ -52,7 +52,7 @@ def confirm_add_user_page(participant_id, start_date, phone_number, lb_link, sch
         with ui.column().classes(''):
             ui.markdown(f'**Schedule Type**: {schedule}').classes('text-lg')
             ui.table.from_polars(schedule_df).classes('w-auto items-center')
-            ui.markdown('**Reminder Message Schedule (1s = send message, 0s = no message):**').classes('text-lg')
+            ui.markdown('**Reminder Message Schedule (1s = reminder, 0s = no reminder message):**').classes('text-lg')
             send_randomizer, randomizer_df = message_shuffler()
             ui.table.from_polars(randomizer_df).classes('w-auto items-center')
             
