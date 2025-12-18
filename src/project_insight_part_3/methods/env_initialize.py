@@ -55,6 +55,7 @@ def create_env_file(aws_access_key_id: str,
     qualtrics_survey_p3_2a_path: str = None,
     qualtrics_survey_p3_2b_path: str = None,
     qualtrics_survey_p3_3_path: str = None,
+    qualtrics_survey_p3_4_path: str = None,
     participant_db: str = None):
     """Create a .env file with the provided environment variables.
     Args:
@@ -66,6 +67,7 @@ def create_env_file(aws_access_key_id: str,
         qualtrics_survey_p3_2a_path (str, optional): Path for Qualtrics Survey 2A. Defaults to None.
         qualtrics_survey_p3_2b_path (str, optional): Path for Qualtrics Survey 2B. Defaults to None.
         qualtrics_survey_p3_3_path (str, optional): Path for Qualtrics Survey 3. Defaults to None.
+        qualtrics_survey_p3_4_path (str, optional): Path for Qualtrics Survey 4. Defaults to None.
         participant_db (str, optional): Path for Participant Database. Defaults to None.
     """
     
@@ -86,6 +88,8 @@ def create_env_file(aws_access_key_id: str,
             f.write(f"qualtrics_survey_p3_2b_path={qualtrics_survey_p3_2b_path}\n")
         if qualtrics_survey_p3_3_path is not None:
             f.write(f"qualtrics_survey_p3_3_path={qualtrics_survey_p3_3_path}\n")
+        if qualtrics_survey_p3_4_path is not None:
+            f.write(f"qualtrics_survey_p3_4_path={qualtrics_survey_p3_4_path}\n")
         if participant_db is not None:
             f.write(f"participant_db={participant_db}\n")
     

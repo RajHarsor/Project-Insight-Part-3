@@ -22,7 +22,9 @@ def initialization_page():
                     variable_select = ui.select(['AWS Access Key ID (aws_access_key_id)', 'AWS Secret Access Key (aws_secret_access_key)', 'DynamoDB Table Name (insight_p3_table_name)',
                                                     'Qualtrics Survey 1A Path (qualtrics_survey_p3_1a_path)', 'Qualtrics Survey 1B Path (qualtrics_survey_p3_1b_path)',
                                                     'Qualtrics Survey 2A Path (qualtrics_survey_p3_2a_path)', 'Qualtrics Survey 2B Path (qualtrics_survey_p3_2b_path)',
-                                                    'Qualtrics Survey 3 Path (qualtrics_survey_p3_3_path)','Participant Database Path (participant_db)']).classes('w-100')
+                                                    'Qualtrics Survey 3 Path (qualtrics_survey_p3_3_path)',
+                                                    'Qualtrics Survey 4 Path (qualtrics_survey_p3_4_path)',
+                                                    'Participant Database Path (participant_db)']).classes('w-100')
                 new_value_input = ui.input(label='New Value').classes('w-100 mt-15')
 
                 def on_submit():
@@ -76,6 +78,7 @@ def initialization_page():
                     survey_2a_path = ui.input(label='Survey 2a Path').classes('w-100')
                     survey_2b_path = ui.input(label='Survey 2b Path').classes('w-100')
                     survey_3_path = ui.input(label='Survey 3 Path').classes('w-100')
+                    survey_4_path = ui.input(label='Survey 4 Path').classes('w-100')
                     participant_db_path = ui.input(label='Participant Database Path').classes('w-100')
             
             def validate_mandatory_fields():
@@ -95,6 +98,7 @@ def initialization_page():
                     survey_2a_path.value,
                     survey_2b_path.value,
                     survey_3_path.value,
+                    survey_4_path.value,
                     participant_db_path.value
                 )
                 ui.notify('Environment file created successfully!', type='positive', close_button=True, timeout=5000)
@@ -110,9 +114,9 @@ def initialization_page():
     top_bar('Initialization Page')
     
     with ui.row().classes('justify-center mt-5 gap-15'):
-        with ui.column().classes('items-right mt-10 gap-4'):
-            update_credential_button = ui.button('Update Credentials', on_click=lambda: update_page()).props('color=orange')
-            setup_credential_button = ui.button('Setup Credentials', on_click=lambda: setup_page()).props('color=orange')
+        with ui.column().classes('items-right mt-0 gap-4'):
+            update_credential_button = ui.button('Update Credentials', on_click=lambda: update_page()).props('color=blue')
+            setup_credential_button = ui.button('Setup Credentials', on_click=lambda: setup_page()).props('color=blue')
         setup_container = ui.column()
         env_var_display_container = ui.column().classes('text-left outline outline-cyan-500 outline-offset-10 rounded-lg')
         # Get current env variables and display
@@ -120,7 +124,7 @@ def initialization_page():
         #FIXME: This should only display the env variables of interest and not all of them in the .env file
         with env_var_display_container:
             with ui.column().classes('mt-5'):
-                ui.label('Current Environment Variables:').classes('text-lg font-bold mb-2 w-100')
+                ui.label('Current Part 3 Environment Variables:').classes('text-lg font-bold mb-2 w-100')
                 for key, value in env_vars.items():
                     ui.label(f'- {key}: {value}')
     
