@@ -60,7 +60,8 @@ def pie_chart_progress() -> go.Figure:
             x=0.5,
             xanchor='center',
             font=dict(size=10)
-    )
+    ),
+        template='plotly_dark'
     )
 
     fig.update_layout(margin=dict(t=60, b=80))
