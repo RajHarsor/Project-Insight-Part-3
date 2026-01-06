@@ -123,7 +123,7 @@ def initialization_page():
         env_vars = read_env_variables()
         #FIXME: This should only display the env variables of interest and not all of them in the .env file
         with env_var_display_container:
-            with ui.column().classes('mt-5'):
+            with ui.column().classes('mt-0'):
                 ui.label('Current Part 3 Environment Variables:').classes('text-lg font-bold mb-2 w-100')
                 for key, value in env_vars.items():
                     ui.label(f'- {key}: {value}')

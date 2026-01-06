@@ -1,6 +1,8 @@
+# Use this to run from VSCode: python -m project_insight_part_3.pages.main
+
 from nicegui import ui
 
-from ..methods.homepage_figures import pie_chart_progress
+from ..methods.homepage_figures import pie_chart_progress, phase_breakdown_pie_chart, enrollment_progress_over_time
 from .components import top_bar
 from .initialization_page import initialization_page
 from .add_user_page import add_user_page
@@ -42,12 +44,14 @@ def main_page():
                         ui.plotly(fig).classes('w-80 h-auto')
                 elif current == 2:
                     with fig_container:
-                        # Phase Analysis of those in Progress
-                        ui.label('No additional figures available.').classes('w-full h-auto flex items-center justify-center text-gray-500')
+                        fig = phase_breakdown_pie_chart()
+                        ui.plotly(fig).classes('w-80 h-auto')
                 elif current == 3:
                     with fig_container:
-                        # Recruitment over time
-                        ui.label('No additional figures available.').classes('w-full h-auto flex items-center justify-center text-gray-500')
+                        fig = enrollment_progress_over_time()
+                        fig.update_layout(margin=dict(l=20, r=20, t=0, b=0))
+                        fig.update_layout(width=None, height=None, autosize=True)
+                        fig = ui.plotly(fig).classes('w-80 h-auto')
                 
             page_number = ui.pagination(1,3, direction_links=True, on_change=update_content).classes('justify-center items-center')
             update_content()
