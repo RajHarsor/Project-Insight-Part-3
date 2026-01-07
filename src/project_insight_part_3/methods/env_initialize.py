@@ -1,5 +1,5 @@
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv, dotenv_values
 
 
 def check_env_file_exists() -> bool:
@@ -9,29 +9,22 @@ def check_env_file_exists() -> bool:
         bool: True if the .env file exists, False otherwise.
     """
     load_dotenv() 
-    return os.path.exists('.env')  
+    return bool(find_dotenv())
 
 def check_env_variables() -> tuple[bool, str]:
     """
     Check if the required environment variables are set in the .env file only.
     Returns (success: bool, message: str) tuple.
     """
-    current_dir = os.getcwd()
-    env_path = os.path.join(current_dir, '.env')
+    env_path = find_dotenv()
 
     # Check if .env file exists first
-    if not os.path.exists('.env'):
-        return False, f"No .env file found in current directory: {current_dir}"
+    if not env_path:
+        return False, f"No .env file found via find_dotenv (looking in {os.getcwd()} and parents)"
 
     # Read the .env file directly to check only those variables
-    env_vars = {}
     try:
-        with open('.env', 'r') as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith('#') and '=' in line:
-                    key, value = line.split('=', 1)
-                    env_vars[key.strip()] = value.strip()
+        env_vars = dotenv_values(env_path)
     except Exception as e:
         return False, f"Error reading .env file: {e}"
 
@@ -75,7 +68,7 @@ def create_env_file(aws_access_key_id: str,
         f.write(f"aws_access_key_id={aws_access_key_id}\n")
         f.write(f"aws_secret_access_key={aws_secret_access_key}\n")
         f.write(f"region=us-east-1\n")
-        f.write(f"p3_table_name={p3_table_name}\n")
+        f.write(f"insight_p3_table_name={p3_table_name}\n")
 
         # Optional Qualtrics survey paths
         if qualtrics_survey_p3_1a_path is not None:
@@ -100,34 +93,29 @@ def update_env_variable(variable: str, value: str):
         value (str): The new value for the environment variable.
     """
     # Read existing variables from .env file
-    env_vars = {}
-    if os.path.exists('.env'):
-        with open('.env', 'r') as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith('#') and '=' in line:
-                    key, val = line.split('=', 1)
-                    env_vars[key.strip()] = val.strip()
+    path = find_dotenv()
+    if not path:
+        path = '.env'
+        
+    env_vars = dotenv_values(path)
+    # Convert to mutable dict if not already (dotenv_values returns dict)
+    env_vars = dict(env_vars)
     
     # Update the specified variable
     env_vars[variable] = value
 
     # Write updated variables back to .env file
-    with open('.env', 'w') as f:
+    with open(path, 'w') as f:
         for key, val in env_vars.items():
-            f.write(f"{key}={val}\n")
+             if val is None: val = ""
+             f.write(f"{key}={val}\n")
 
 def read_env_variables() -> dict:
     """Read all environment variables from the .env file.
     Returns:
         dict: A dictionary of environment variables and their values.
     """
-    env_vars = {}
-    if os.path.exists('.env'):
-        with open('.env', 'r') as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith('#') and '=' in line:
-                    key, val = line.split('=', 1)
-                    env_vars[key.strip()] = val.strip()
-    return env_vars
+    path = find_dotenv()
+    if path:
+        return dotenv_values(path)
+    return {}
