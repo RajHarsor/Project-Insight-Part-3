@@ -69,7 +69,7 @@ def main_page():
 
 def main() -> None:
     register_pages()
-    ui.run(port=8081)
+    ui.run(port=8081, reload=False)
 
 if __name__ in {"__main__", "__mp_main__"}:
     main()
