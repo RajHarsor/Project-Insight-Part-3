@@ -126,8 +126,13 @@ def initialization_page():
             with ui.column().classes('mt-0'):
                 ui.label('Current Part 3 Environment Variables:').classes('text-lg font-bold mb-2 w-100')
                 for key, value in env_vars.items():
-                    ui.label(f'- {key}: {value}')
-    
+                    if key in ['aws_access_key_id', 'aws_secret_access_key', 'insight_p3_table_name',
+                               'qualtrics_survey_p3_1a_path', 'qualtrics_survey_p3_1b_path',
+                               'qualtrics_survey_p3_2a_path', 'qualtrics_survey_p3_2b_path',
+                               'qualtrics_survey_p3_3_path', 'qualtrics_survey_p3_4_path',
+                               'participant_db']:
+                        ui.label(f'- {key}: {value}')
+        
     update_credential_button.disable()
     setup_credential_button.disable()
     
