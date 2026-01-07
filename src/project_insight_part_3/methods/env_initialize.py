@@ -16,7 +16,7 @@ def check_env_variables() -> tuple[bool, str]:
     Check if the required environment variables are set in the .env file only.
     Returns (success: bool, message: str) tuple.
     """
-    env_path = find_dotenv()
+    env_path = load_dotenv()
 
     # Check if .env file exists first
     if not env_path:

@@ -117,12 +117,6 @@ def initialization_page():
                     participant_db_path.value
                 )
                 ui.notify('Environment file created successfully!', type='positive', close_button=True, timeout=5000)
-                
-                # Use a timer to refresh display after a short delay to ensure file write propagates
-                ui.timer(0.1, refresh_env_display, once=True)
-                
-                # Run validation again to unlock buttons if everything is good
-                ui.timer(0.2, validate_env_variables, once=True)
             
             submit_button = ui.button('Submit', on_click=handle_submit).props('color=green').classes('mt-15 w-full')
             submit_button.disable()  # Start disabled
