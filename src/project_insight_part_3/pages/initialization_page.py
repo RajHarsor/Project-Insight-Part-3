@@ -6,6 +6,21 @@ def initialization_page():
     
     setup_container = None
 
+    def refresh_env_display():
+        """Refresh the environment variable display"""
+        env_vars = read_env_variables()
+        env_var_display_container.clear()
+        with env_var_display_container:
+            with ui.column().classes('mt-0'):
+                ui.label('Current Part 3 Environment Variables:').classes('text-lg font-bold mb-2 w-100')
+                for key, value in env_vars.items():
+                    if key in ['aws_access_key_id', 'aws_secret_access_key', 'insight_p3_table_name',
+                               'qualtrics_survey_p3_1a_path', 'qualtrics_survey_p3_1b_path',
+                               'qualtrics_survey_p3_2a_path', 'qualtrics_survey_p3_2b_path',
+                               'qualtrics_survey_p3_3_path', 'qualtrics_survey_p3_4_path',
+                               'participant_db']:
+                        ui.label(f'- {key}: {value}')
+
     def update_page():
         nonlocal setup_container
         update_credential_button.disable()
@@ -62,7 +77,7 @@ def initialization_page():
         
         if setup_container:
             setup_container.clear()
-            env_var_display_container.clear()
+            # Removed env_var_display_container.clear() to keep existing vars visible during setup
         
         with setup_container:
             with ui.row().classes('justify-center mt-5 gap-30'):
@@ -102,6 +117,12 @@ def initialization_page():
                     participant_db_path.value
                 )
                 ui.notify('Environment file created successfully!', type='positive', close_button=True, timeout=5000)
+                
+                # Use a timer to refresh display after a short delay to ensure file write propagates
+                ui.timer(0.1, refresh_env_display, once=True)
+                
+                # Run validation again to unlock buttons if everything is good
+                ui.timer(0.2, validate_env_variables, once=True)
             
             submit_button = ui.button('Submit', on_click=handle_submit).props('color=green').classes('mt-15 w-full')
             submit_button.disable()  # Start disabled
