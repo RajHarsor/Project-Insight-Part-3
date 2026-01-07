@@ -103,13 +103,13 @@ def initialization_page():
                 )
                 ui.notify('Environment file created successfully!', type='positive', close_button=True, timeout=5000)
             
-            # Add validation on input change
-            aws_access_key.on('update:model-value', lambda: validate_mandatory_fields())
-            aws_secret_key.on('update:model-value', lambda: validate_mandatory_fields())
-            dynamodb_table_name.on('update:model-value', lambda: validate_mandatory_fields())
-            
             submit_button = ui.button('Submit', on_click=handle_submit).props('color=green').classes('mt-15 w-full')
             submit_button.disable()  # Start disabled
+
+            # Add validation on input change using on_value_change which is safer for inputs
+            aws_access_key.on_value_change(lambda e: validate_mandatory_fields())
+            aws_secret_key.on_value_change(lambda e: validate_mandatory_fields())
+            dynamodb_table_name.on_value_change(lambda e: validate_mandatory_fields())
 
     top_bar('Initialization Page')
     
