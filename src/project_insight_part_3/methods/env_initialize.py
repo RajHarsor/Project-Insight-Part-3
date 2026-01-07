@@ -122,7 +122,17 @@ def read_env_variables() -> dict:
     Returns:
         dict: A dictionary of environment variables and their values.
     """
-    path = find_dotenv()
-    if path:
-        return dotenv_values(path)
-    return {}
+    path = os.path.join(os.getcwd(), '.env')
+    if not os.path.exists(path):
+        return {}
+    env_vars = {}
+    try:
+        with open(path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, value = line.split('=', 1)
+                    env_vars[key.strip()] = value.strip()
+    except Exception as e:
+        return {}
+    return env_vars
