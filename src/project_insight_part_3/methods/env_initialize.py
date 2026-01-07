@@ -9,22 +9,29 @@ def check_env_file_exists() -> bool:
         bool: True if the .env file exists, False otherwise.
     """
     load_dotenv() 
-    return bool(find_dotenv())
+    return os.path.exists('.env')  # Check if .env file exists in the current directory
 
 def check_env_variables() -> tuple[bool, str]:
     """
     Check if the required environment variables are set in the .env file only.
     Returns (success: bool, message: str) tuple.
     """
-    env_path = load_dotenv()
+    current_dir = os.getcwd()
+    env_path = os.path.join(current_dir, '.env')
 
     # Check if .env file exists first
-    if not env_path:
+    if not os.path.exists(env_path):
         return False, f"No .env file found via find_dotenv (looking in {os.getcwd()} and parents)"
 
     # Read the .env file directly to check only those variables
+    env_vars = {}
     try:
-        env_vars = dotenv_values(env_path)
+        with open('.env', 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, value = line.split('=', 1)
+                    env_vars[key.strip()] = value.strip()
     except Exception as e:
         return False, f"Error reading .env file: {e}"
 
