@@ -71,6 +71,5 @@ def main() -> None:
     register_pages()
     ui.run(port=8081)
 
-
 if __name__ in {"__main__", "__mp_main__"}:
     main()
