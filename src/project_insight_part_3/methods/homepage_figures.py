@@ -16,9 +16,9 @@ def pie_chart_progress() -> go.Figure:
     env_vars = read_env_variables()
     
     Session = boto3.Session(
-        aws_access_key_id=env_vars['aws_access_key_id'],
-        aws_secret_access_key=env_vars['aws_secret_access_key'],
-        region_name=env_vars['region']
+        aws_access_key_id=env_vars.get('aws_access_key_id') or env_vars.get('AWS_ACCESS_KEY_ID'),
+        aws_secret_access_key=env_vars.get('aws_secret_access_key') or env_vars.get('AWS_SECRET_ACCESS_KEY'),
+        region_name=env_vars.get('region') or env_vars.get('REGION') or env_vars.get('AWS_DEFAULT_REGION')
     )
 
     dynamodb = Session.resource('dynamodb')
@@ -82,9 +82,9 @@ def phase_breakdown_pie_chart() -> go.Figure:
     env_vars = read_env_variables()
     
     Session = boto3.Session(
-        aws_access_key_id=env_vars['aws_access_key_id'],
-        aws_secret_access_key=env_vars['aws_secret_access_key'],
-        region_name=env_vars['region']
+        aws_access_key_id=env_vars.get('aws_access_key_id') or env_vars.get('AWS_ACCESS_KEY_ID'),
+        aws_secret_access_key=env_vars.get('aws_secret_access_key') or env_vars.get('AWS_SECRET_ACCESS_KEY'),
+        region_name=env_vars.get('region') or env_vars.get('REGION') or env_vars.get('AWS_DEFAULT_REGION')
     )
     
     dynamodb = Session.resource('dynamodb')
@@ -159,9 +159,9 @@ def enrollment_progress_over_time() -> go.Figure:
     env_vars = read_env_variables()
     
     Session = boto3.Session(
-        aws_access_key_id=env_vars['aws_access_key_id'],
-        aws_secret_access_key=env_vars['aws_secret_access_key'],
-        region_name=env_vars['region']
+        aws_access_key_id=env_vars.get('aws_access_key_id') or env_vars.get('AWS_ACCESS_KEY_ID'),
+        aws_secret_access_key=env_vars.get('aws_secret_access_key') or env_vars.get('AWS_SECRET_ACCESS_KEY'),
+        region_name=env_vars.get('region') or env_vars.get('REGION') or env_vars.get('AWS_DEFAULT_REGION')
     )
     
     dynamodb = Session.resource('dynamodb')
