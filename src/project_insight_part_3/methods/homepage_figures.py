@@ -3,6 +3,7 @@ import plotly.graph_objects as go
 import polars as pl
 import datetime as dt
 import boto3
+from nicegui import ui
 from typing import Dict, Any
 from .env_initialize import read_env_variables
 
@@ -15,15 +16,28 @@ def pie_chart_progress() -> go.Figure:
     # Initialize AWS session
     env_vars = read_env_variables()
     
-    Session = boto3.Session(
-        aws_access_key_id=env_vars.get('aws_access_key_id') or env_vars.get('AWS_ACCESS_KEY_ID'),
-        aws_secret_access_key=env_vars.get('aws_secret_access_key') or env_vars.get('AWS_SECRET_ACCESS_KEY'),
-        region_name=env_vars.get('region') or env_vars.get('REGION') or env_vars.get('AWS_DEFAULT_REGION')
-    )
+    aws_access_key_id = env_vars.get('aws_access_key_id') or env_vars.get('AWS_ACCESS_KEY_ID')
+    aws_secret_access_key = env_vars.get('aws_secret_access_key') or env_vars.get('AWS_SECRET_ACCESS_KEY')
+    region_name = env_vars.get('region') or env_vars.get('REGION') or env_vars.get('AWS_DEFAULT_REGION')
+    table_name = env_vars.get('insight_p3_table_name')
 
-    dynamodb = Session.resource('dynamodb')
-    table = dynamodb.Table(env_vars['insight_p3_table_name'])
-    response = table.scan()
+    if not region_name:
+        ui.label('Error: AWS Region not specified in environment variables.').style('color: red; font-weight: bold;')
+        return go.Figure()
+    
+    try:
+        Session = boto3.Session(
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+            region_name=region_name
+        )
+
+        dynamodb = Session.resource('dynamodb')
+        table = dynamodb.Table(table_name)
+        response = table.scan()
+    except Exception as e:
+        ui.label(f'AWS Error: {str(e)}').style('color: red; font-weight: bold;')
+        return go.Figure()
     
     # Load data into Polars DataFrame + Clean
     data = response['Items']
@@ -81,15 +95,28 @@ def phase_breakdown_pie_chart() -> go.Figure:
     # Initialize AWS session
     env_vars = read_env_variables()
     
-    Session = boto3.Session(
-        aws_access_key_id=env_vars.get('aws_access_key_id') or env_vars.get('AWS_ACCESS_KEY_ID'),
-        aws_secret_access_key=env_vars.get('aws_secret_access_key') or env_vars.get('AWS_SECRET_ACCESS_KEY'),
-        region_name=env_vars.get('region') or env_vars.get('REGION') or env_vars.get('AWS_DEFAULT_REGION')
-    )
-    
-    dynamodb = Session.resource('dynamodb')
-    table = dynamodb.Table(env_vars['insight_p3_table_name'])
-    response = table.scan()
+    aws_access_key_id = env_vars.get('aws_access_key_id') or env_vars.get('AWS_ACCESS_KEY_ID')
+    aws_secret_access_key = env_vars.get('aws_secret_access_key') or env_vars.get('AWS_SECRET_ACCESS_KEY')
+    region_name = env_vars.get('region') or env_vars.get('REGION') or env_vars.get('AWS_DEFAULT_REGION')
+    table_name = env_vars.get('insight_p3_table_name')
+
+    if not region_name:
+        ui.label('Error: AWS Region not specified in environment variables.').style('color: red; font-weight: bold;')
+        return go.Figure()
+
+    try:
+        Session = boto3.Session(
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+            region_name=region_name
+        )
+        
+        dynamodb = Session.resource('dynamodb')
+        table = dynamodb.Table(table_name)
+        response = table.scan()
+    except Exception as e:
+        ui.label(f'AWS Error: {str(e)}').style('color: red; font-weight: bold;')
+        return go.Figure()
     
     data = response['Items']
     df = pl.DataFrame(data)
@@ -158,15 +185,28 @@ def enrollment_progress_over_time() -> go.Figure:
     # Initialize AWS session
     env_vars = read_env_variables()
     
-    Session = boto3.Session(
-        aws_access_key_id=env_vars.get('aws_access_key_id') or env_vars.get('AWS_ACCESS_KEY_ID'),
-        aws_secret_access_key=env_vars.get('aws_secret_access_key') or env_vars.get('AWS_SECRET_ACCESS_KEY'),
-        region_name=env_vars.get('region') or env_vars.get('REGION') or env_vars.get('AWS_DEFAULT_REGION')
-    )
-    
-    dynamodb = Session.resource('dynamodb')
-    table = dynamodb.Table(env_vars['insight_p3_table_name'])
-    response = table.scan()
+    aws_access_key_id = env_vars.get('aws_access_key_id') or env_vars.get('AWS_ACCESS_KEY_ID')
+    aws_secret_access_key = env_vars.get('aws_secret_access_key') or env_vars.get('AWS_SECRET_ACCESS_KEY')
+    region_name = env_vars.get('region') or env_vars.get('REGION') or env_vars.get('AWS_DEFAULT_REGION')
+    table_name = env_vars.get('insight_p3_table_name')
+
+    if not region_name:
+        ui.label('Error: AWS Region not specified in environment variables.').style('color: red; font-weight: bold;')
+        return go.Figure()
+
+    try:
+        Session = boto3.Session(
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+            region_name=region_name
+        )
+        
+        dynamodb = Session.resource('dynamodb')
+        table = dynamodb.Table(table_name)
+        response = table.scan()
+    except Exception as e:
+        ui.label(f'AWS Error: {str(e)}').style('color: red; font-weight: bold;')
+        return go.Figure()
     
     data = response['Items']
     df = pl.DataFrame(data)
