@@ -24,7 +24,7 @@ def view_edit_user_page():
                 ui.markdown(f'- **Phone Number**: {user_info.get("phone_number", "N/A")}')
                 ui.markdown(f'- **Leaderboard Link**: {user_info.get("leaderboard_link", "N/A")}')
                 ui.markdown(f'- **Schedule Type**: {user_info.get("schedule_type", "N/A")}')
-                ui.markdown(f'- **Message Randomizer** (1 is send message, 0 is do not send message): {user_info.get("message_randomizer", "N/A")}')
+                ui.markdown(f'- **Message Randomizer** (1=reminder, 0=no message): {user_info.get("message_randomizer", "N/A")}')
                 
             with attribute_edit_container:
                 
@@ -45,7 +45,7 @@ def view_edit_user_page():
                             # Convert message_randomizer list to string for better display
                             if isinstance(user_info.get("message_randomizer"), list):
                                 user_info["message_randomizer"] = ', '.join(map(str, user_info["message_randomizer"]))
-                            ui.markdown(f'- **Message Randomizer** (1 is send message, 0 is do not send message): {user_info.get("message_randomizer", "N/A")}')
+                            ui.markdown(f'- **Message Randomizer** (1=reminder, 0=no reminder): {user_info.get("message_randomizer", "N/A")}')
                     else:
                         ui.notify(f'Failed to update {attribute}: {message1}', type='negative', close_button=True, timeout=5000)
                         return
