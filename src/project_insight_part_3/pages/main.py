@@ -69,7 +69,9 @@ def main_page():
 
 def main() -> None:
     register_pages()
-    ui.run(port=8081, reload=False)
+    
+    # Add reload = False before pushing new versions to production
+    ui.run(port=8081)
 
 if __name__ in {"__main__", "__mp_main__"}:
     main()

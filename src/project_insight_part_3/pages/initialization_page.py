@@ -48,8 +48,8 @@ def initialization_page():
                     env_vars = read_env_variables()
                     env_display_container.clear()
                     with env_display_container:
-                        with ui.column().classes('mt-5'):
-                            ui.label('New Environment Variables:').classes('text-lg font-bold mb-2 w-100 outline outline-cyan-500 outline-offset-10 rounded-lg')
+                        with ui.column().classes('mt-5 mb-2 w-auto outline outline-cyan-500 outline-offset-10 rounded-lg'):
+                            ui.label('New Environment Variables:')
                             for key, value in env_vars.items():
                                 ui.label(f'- {key}: {value}')
 
@@ -138,7 +138,7 @@ def initialization_page():
         env_vars = read_env_variables()
         with env_var_display_container:
             with ui.column().classes('mt-0'):
-                ui.label('Current Part 3 Environment Variables:').classes('text-lg font-bold mb-2 w-100')
+                ui.label('Current Part 3 Environment Variables:').classes('text-lg font-bold mb-2 w-100 h-auto')
                 for key, value in env_vars.items():
                     if key in ['aws_access_key_id', 'aws_secret_access_key', 'insight_p3_table_name',
                                'qualtrics_survey_p3_1a_path', 'qualtrics_survey_p3_1b_path',
