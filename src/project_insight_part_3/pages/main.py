@@ -29,7 +29,13 @@ def main_page():
             
         with ui.column().classes('w-100 outline outline-cyan-500 outline-offset-10 rounded-lg items-center'):
             ui.label('Recent Activities').classes('text-lg font-bold mb-5')
-        
+            
+            recent_activities_container = ui.column().classes('w-100 h-auto items-left justify-left')
+            
+            def load_recent_activities():
+                recent_activities_container.clear()
+                
+
         with ui.column().classes('w-100 outline outline-cyan-500 outline-offset-10 rounded-lg items-center'):
             ui.label('Participant Progress Overview').classes('text-lg font-bold justify-left')
 
