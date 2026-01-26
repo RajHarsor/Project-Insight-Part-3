@@ -14,6 +14,7 @@ from .confirm_add_user_page import confirm_add_user_page
 from .view_edit_user_page import view_edit_user_page
 from .delete_user_page import delete_user_page
 from .send_sms_page import send_sms_page
+from .individual_compliance_check import individual_compliance_check_page
 
 
 def register_pages() -> None:
@@ -24,6 +25,7 @@ def register_pages() -> None:
     ui.page('/view_edit_user')(view_edit_user_page)
     ui.page('/delete_user')(delete_user_page)
     ui.page('/send_sms')(send_sms_page)
+    ui.page('/individual_compliance_check')(individual_compliance_check_page)
 
 
 def main_page():
@@ -67,7 +69,7 @@ def main_page():
                             'Date/Time',
                             'Participant ID #',
                             'Initials',
-                            'Survey_Source'
+                            'Survey Source'
                         ])
                         with recent_activities_container:
                             ui.table.from_polars(

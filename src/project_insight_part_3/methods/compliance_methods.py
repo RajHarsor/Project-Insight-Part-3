@@ -1,3 +1,4 @@
+import boto3
 import polars as pl
 from project_insight_part_3.methods.env_initialize import read_env_variables
 
@@ -19,6 +20,28 @@ def get_participant_initials():
     )
 
     return participant_db_df
+
+def get_participant_dynamo_db(participant_id: str):
+    env_vars = read_env_variables()
+    
+    Session = boto3.Session(
+        aws_access_key_id=env_vars['aws_access_key_id'],
+        aws_secret_access_key=env_vars['aws_secret_access_key'],
+        region_name=env_vars['region']
+    )
+    
+    # Get the needed variables
+    dynamodb = Session.resource('dynamodb')
+    table = dynamodb.Table(env_vars['insight_p3_table_name'])
+
+    response = table.get_item(Key={"participant_id": participant_id})
+    
+    study_start_date = response['Item']['start_date']
+    study_end_date = response['Item']['end_date']
+    schedule_type = response['Item']['schedule_type']
+
+    
+    return study_start_date, study_end_date, schedule_type
 
 def merge_survey_data():
     env_vars = read_env_variables()
@@ -75,6 +98,6 @@ def match_initials_table(merged_df, participant_db_df):
         pl.col('Participant ID #').fill_null('N/A')
     )
     
-    merged_df = merged_df.rename({'Name': 'Initials'})
+    merged_df = merged_df.rename({'Name': 'Initials', 'Survey_Source': 'Survey Source'})
 
     return merged_df
