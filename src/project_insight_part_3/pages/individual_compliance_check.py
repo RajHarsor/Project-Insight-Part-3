@@ -2,68 +2,95 @@ from nicegui import ui
 from .components import top_bar
 import polars as pl
 from datetime import datetime
-from ..methods.compliance_methods import get_participant_initials, merge_survey_data, match_initials_table, get_participant_dynamo_db
+from ..methods.compliance_methods import get_participant_initials, get_participant_dynamo_db, get_survey_send_times
 
 def individual_compliance_check_page():
     top_bar('Individual Compliance Check')
 
     participant_id_input = ui.input(label='Enter Participant ID').props('clearable').classes('w-full mt-5')
-    search_button = ui.button('Search', on_click=lambda: handle_search()).props('color=blue').classes('w-full mb-5')
+    ui.button('Search', on_click=lambda: handle_search()).props('color=blue').classes('w-full mb-5')
 
-    participant_info_container = ui.column().classes('w-full h-auto justify-center, items-center')
-    participant_info_container.clear()
+    participant_info_container = ui.column().classes('w-full h-auto justify-center items-center')
+    participant_info_container.visible = False
 
     with ui.row().classes('w-full justify-center gap-10'):
-        
-        # Compliance Data
-        with ui.column().classes('w-100 outline outline-cyan-500 outline-offset-10 rounded-lg items-center'):
-            #ui.label('Compliance Data').classes('text-lg font-bold mb-5')
-            compliance_data_container = ui.column().classes('w-100 h-auto items-left justify-left')
-            compliance_data_container.clear()
- 
-        # Timestamp Data
-        with ui.column().classes('w-100 outline outline-cyan-500 outline-offset-10 rounded-lg items-center'):
-            ui.label('Timestamp Data').classes('text-lg font-bold mb-5')
-            timestamp_data_container = ui.column().classes('w-100 h-auto items-left justify-left')
-            timestamp_data_container.clear()
+
+        with ui.column().classes('w-1/2 outline outline-cyan-500 outline-offset-10 rounded-lg items-center') as compliance_section:
+            compliance_section.visible = False
+            compliance_data_container = ui.column().classes('w-full h-auto items-center justify-center')
+
+            def update_content(page: int = 1):
+                compliance_data_container.clear()
+                with compliance_data_container:
+                    if page == 1:
+                        ui.label("Compliance Data Page 1").classes('m-3')
+                    elif page == 2:
+                        ui.label("Survey Send Times").classes('text-lg font-bold mb-5')
+                        survey_send_df = get_survey_send_times(int(participant_id_input.value))
+                        ui.table.from_polars(survey_send_df).classes('w-full')
+                    elif page == 3:
+                        ui.label("Compliance Data Page 3").classes('m-3')
+
+            # place pagination below the content
+            pagination = ui.pagination(1, 3, direction_links=True,
+                                       on_change=lambda e: update_content(e.value)).classes('justify-center items-center mt-4')
+            update_content(1)
+
+        with ui.column().classes('w-100 outline outline-cyan-500 outline-offset-10 rounded-lg items-center') as info_section:
+            info_section.visible = False
+            ui.label('Info Container').classes('text-lg font-bold mb-5')
+            info_container = ui.column().classes('w-100 h-auto items-left justify-left')
 
     def handle_search():
-        pid = participant_id_input.value.strip()
-        pid = int(pid)
-        if not pid:
+        raw = participant_id_input.value or ''
+        if not raw.strip():
             ui.notify('Please enter a valid Participant ID.', type='negative', close_button=True, timeout=5000)
             return
-        
-        # Clear previous data
-        participant_info_container.clear()
-        compliance_data_container.clear()
-        timestamp_data_container.clear()
-        
-        with participant_info_container:
+        try:
+            pid = int(raw.strip())
+        except ValueError:
+            ui.notify('Please enter a valid Participant ID.', type='negative', close_button=True, timeout=5000)
+            return
+    
+        try:
             participant_db = get_participant_initials()
-            
-            # Filter to get initials
             participant_row = participant_db.filter(pl.col('Participant ID #') == pid)
-            #print(participant_row)
+            
             if participant_row.is_empty():
-                initials = 'N/A'
-            else:
-                initials = participant_row.select('Initials').to_series()[0]
+                ui.notify(f'Participant ID {pid} not found in database.', type='negative', close_button=True, timeout=5000)
+                return
+                
+            initials = participant_row.select('Initials').to_series()[0]
             
             study_start_date, study_end_date, schedule_type = get_participant_dynamo_db(pid)
             
-            # Calculate current day in study
-            study_start_date = datetime.strptime(study_start_date, "%Y-%m-%d").strftime("%Y-%m-%d")           
-            study_end_date = datetime.strptime(study_end_date, "%Y-%m-%d").strftime("%Y-%m-%d")
-            current_day_in_study = (datetime.now() - datetime.strptime(study_start_date, "%Y-%m-%d")).days + 1
-            
-            ui.markdown(f'**Participant ID:** {pid}, **Initials:** {initials}, **Study Start Date:** {study_start_date}, **Study End Date:** {study_end_date}, **Current Day in Study:** {current_day_in_study}, **Current Compliance Rate:** [], **Total Compliance Rate:** []' ).classes('text-lg mb-5')
-        # Fetch and display compliance data (placeholder logic)
-        with compliance_data_container:
-            ui.label(f"Compliance Data for {pid}").classes('m-3')
-            # Here you would add the actual compliance data fetching and display logic
-        
-        # Fetch and display timestamp data (placeholder logic)
-        with timestamp_data_container:
-            ui.label(f"Timestamp Data for {pid}").classes('m-3')
-            # Here you would add the actual timestamp data fetching and display logic
+            compliance_section.visible = True
+            info_section.visible = True
+            participant_info_container.visible = True
+
+        except KeyError as e:
+            ui.notify(f"Participant {pid} not found in DynamoDB: {e}", type='negative', close_button=True, timeout=5000)
+            return
+        except Exception as e:
+            ui.notify(f"Error loading participant data: {e}", type='negative', close_button=True, timeout=5000)
+            return
+
+        participant_info_container.clear()
+        compliance_data_container.clear()
+        info_container.clear()
+
+        pagination.value = 1
+        update_content(1)
+
+        with participant_info_container:
+            study_start_date = datetime.strptime(study_start_date, "%Y-%m-%d")
+            study_end_date = datetime.strptime(study_end_date, "%Y-%m-%d")
+            current_day_in_study = (datetime.now() - study_start_date).days + 1
+
+            ui.markdown(
+                f'**Participant ID:** {pid}, **Initials:** {initials}, '
+                f'**Study Start Date:** {study_start_date:%Y-%m-%d}, '
+                f'**Study End Date:** {study_end_date:%Y-%m-%d}, '
+                f'**Current Day in Study:** {current_day_in_study}, '
+                f'**Current Compliance Rate:** [], **Total Compliance Rate:** []'
+            ).classes('text-lg mb-5')
