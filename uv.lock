@@ -892,7 +892,7 @@ wheels = [
 
 [[package]]
 name = "project-insight-part-3"
-version = "0.2.4b0"
+version = "0.3.1"
 source = { editable = "." }
 dependencies = [
     { name = "asyncio" },
@@ -902,6 +902,7 @@ dependencies = [
     { name = "nicegui" },
     { name = "plotly" },
     { name = "polars" },
+    { name = "pytz" },
     { name = "pywebview" },
 ]
 
@@ -914,6 +915,7 @@ requires-dist = [
     { name = "nicegui", specifier = ">=3.3.1" },
     { name = "plotly", specifier = ">=6.5.0" },
     { name = "polars", specifier = ">=1.36.0" },
+    { name = "pytz", specifier = ">=2025.2" },
     { name = "pywebview", specifier = ">=6.1" },
 ]
 
@@ -1274,6 +1276,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/9a/d6/1afd75edd932306ae9bd2c2d961d603dc2b52fcec51b04afea464f1f6646/pythonnet-3.0.5.tar.gz", hash = "sha256:48e43ca463941b3608b32b4e236db92d8d40db4c58a75ace902985f76dac21cf", size = 239212, upload-time = "2024-12-13T08:30:44.393Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/cd/f1/bfb6811df4745f92f14c47a29e50e89a36b1533130fcc56452d4660bd2d6/pythonnet-3.0.5-py3-none-any.whl", hash = "sha256:f6702d694d5d5b163c9f3f5cc34e0bed8d6857150237fae411fefb883a656d20", size = 297506, upload-time = "2024-12-13T08:30:40.661Z" },
+]
+
+[[package]]
+name = "pytz"
+version = "2025.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f8/bf/abbd3cdfb8fbc7fb3d4d38d320f2441b1e7cbe29be4f23797b4a2b5d8aac/pytz-2025.2.tar.gz", hash = "sha256:360b9e3dbb49a209c21ad61809c7fb453643e048b38924c765813546746e81c3", size = 320884, upload-time = "2025-03-25T02:25:00.538Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/81/c4/34e93fe5f5429d7570ec1fa436f1986fb1f00c3e0f43a589fe2bbcd22c3f/pytz-2025.2-py2.py3-none-any.whl", hash = "sha256:5ddf76296dd8c44c26eb8f4b6f35488f3ccbf6fbbd7adee0b7262d43f0ec2f00", size = 509225, upload-time = "2025-03-25T02:24:58.468Z" },
 ]
 
 [[package]]

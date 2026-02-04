@@ -215,3 +215,23 @@ def get_survey_send_times(participant_id: str):
     #print(send_time_df)
     
     return send_time_df
+
+def get_dynamo_table():
+    env_vars = read_env_variables()
+    #print(env_vars)
+
+    Session = boto3.Session(
+        aws_access_key_id=env_vars['aws_access_key_id'],
+        aws_secret_access_key=env_vars['aws_secret_access_key'],
+        region_name=env_vars['region']
+    )
+
+    # Get the needed variables
+    dynamodb = Session.resource('dynamodb')
+    table = dynamodb.Table(env_vars['insight_p3_table_name'])
+
+    response = table.scan()
+
+    data = response['Items']
+    df = pl.DataFrame(data)
+    return env_vars, df
