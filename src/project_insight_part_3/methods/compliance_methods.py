@@ -511,10 +511,12 @@ def check_survey_2(participant_id: str, initials: str, start_date: datetime, end
                     survey_2_dict["Time"].append(None)
                     survey_2_dict["Code"].append("✗ NR")
             elif (day_in_study >= 5 and day_in_study <= 12):
-                message_number = str(zip_day_message[day_in_study])
+                message_number = int(zip_day_message[day_in_study])
+                print(f"[Survey 2] day_in_study={day_in_study} message_number={message_number} type={type(message_number)} zip_day_message={zip_day_message}")
+                print(zip_day_message)
                 
                 if message_number == 1:
-                    survey_2a_source = f"Survey 2A Message {message_number}"
+                    survey_2a_source = f"Survey 2A"
                     
                     if use_age is True:
                         survey_2a_row = merged_df.filter(
@@ -553,8 +555,8 @@ def check_survey_2(participant_id: str, initials: str, start_date: datetime, end
                             survey_2_dict["Date"].append(date)
                             survey_2_dict["Time"].append(None)
                             survey_2_dict["Code"].append(code)
-                if message_number == 0:
-                    survey_2b_source = f"Survey 2B Message {message_number}"
+                elif message_number == 0:
+                    survey_2b_source = f"Survey 2B"
                     
                     if use_age is True:
                         survey_2b_row = merged_df.filter(
