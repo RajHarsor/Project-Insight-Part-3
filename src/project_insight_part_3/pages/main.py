@@ -52,7 +52,7 @@ def main_page():
                 
                 if not all(key in env_vars and env_vars[key] for key in required_keys):
                     with recent_activities_container:
-                        ui.label("Environment variables not properly set. Please initialize the environment.").classes('m-3').parent(recent_activities_container)
+                        ui.label("Environment variables not properly set. Please initialize the environment.").classes('m-3')
                         return
                 
                 participant_df_db = get_participant_initials()
