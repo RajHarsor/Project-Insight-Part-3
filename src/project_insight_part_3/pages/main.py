@@ -1,8 +1,12 @@
 # Use this to run from VSCode: python -m project_insight_part_3.pages.main
 
 from nicegui import ui
+import polars as pl
 
 from ..methods.homepage_figures import pie_chart_progress, phase_breakdown_pie_chart, enrollment_progress_over_time
+from ..methods.compliance_methods import get_participant_initials, merge_survey_data, match_initials_table
+from ..methods.env_initialize import read_env_variables
+
 from .components import top_bar
 from .initialization_page import initialization_page
 from .add_user_page import add_user_page
@@ -10,6 +14,7 @@ from .confirm_add_user_page import confirm_add_user_page
 from .view_edit_user_page import view_edit_user_page
 from .delete_user_page import delete_user_page
 from .send_sms_page import send_sms_page
+from .individual_compliance_check import individual_compliance_check_page
 
 
 def register_pages() -> None:
@@ -20,6 +25,7 @@ def register_pages() -> None:
     ui.page('/view_edit_user')(view_edit_user_page)
     ui.page('/delete_user')(delete_user_page)
     ui.page('/send_sms')(send_sms_page)
+    ui.page('/individual_compliance_check')(individual_compliance_check_page)
 
 
 def main_page():
@@ -34,6 +40,47 @@ def main_page():
             
             def load_recent_activities():
                 recent_activities_container.clear()
+                
+                env_vars = read_env_variables()
+                required_keys =  ['qualtrics_survey_p3_1a_path',
+                    'qualtrics_survey_p3_1b_path',
+                    'qualtrics_survey_p3_2a_path',
+                    'qualtrics_survey_p3_2b_path',
+                    'qualtrics_survey_p3_3_path',
+                    'qualtrics_survey_p3_4_path',
+                    'participant_db']
+                
+                if not all(key in env_vars and env_vars[key] for key in required_keys):
+                    with recent_activities_container:
+                        ui.label("Environment variables not properly set. Please initialize the environment.").classes('m-3').parent(recent_activities_container)
+                        return
+                
+                participant_df_db = get_participant_initials()
+                merged_df = merge_survey_data()
+                matched_df = match_initials_table(merged_df, participant_df_db)
+                
+                if matched_df is None or matched_df.is_empty():
+                    with recent_activities_container:
+                        ui.label("No recent activities to display.").classes('m-3').parent(recent_activities_container)
+                        return
+                else:
+                    try:
+                        front_page_df = matched_df.select([
+                            'Date/Time',
+                            'Participant ID #',
+                            'Initials',
+                            'Survey Source'
+                        ])
+                        with recent_activities_container:
+                            ui.table.from_polars(
+                                front_page_df,
+                                pagination=5
+                            ).classes('w-100 h-auto')
+                    except Exception as e:
+                        print(f"Error displaying recent activities: {e}")
+                        with recent_activities_container:
+                            ui.label("Error displaying recent activities.").classes('m-3').parent(recent_activities_container)
+            load_recent_activities()
                 
 
         with ui.column().classes('w-100 outline outline-cyan-500 outline-offset-10 rounded-lg items-center'):
