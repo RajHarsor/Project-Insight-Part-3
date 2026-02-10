@@ -61,7 +61,7 @@ def main_page():
                 
                 if matched_df is None or matched_df.is_empty():
                     with recent_activities_container:
-                        ui.label("No recent activities to display.").classes('m-3').parent(recent_activities_container)
+                        ui.label("No recent activities to display.").classes('m-3')
                         return
                 else:
                     try:
@@ -79,9 +79,9 @@ def main_page():
                     except Exception as e:
                         print(f"Error displaying recent activities: {e}")
                         with recent_activities_container:
-                            ui.label("Error displaying recent activities.").classes('m-3').parent(recent_activities_container)
+                            ui.label("Error displaying recent activities.").classes('m-3')
             load_recent_activities()
-                
+            
 
         with ui.column().classes('w-100 outline outline-cyan-500 outline-offset-10 rounded-lg items-center'):
             ui.label('Participant Progress Overview').classes('text-lg font-bold justify-left')
@@ -124,7 +124,7 @@ def main() -> None:
     register_pages()
     
     # Add reload = False before pushing new versions to production
-    ui.run(port=8081, reload=False)
+    ui.run(port=8081, reload=True)
 
 if __name__ in {"__main__", "__mp_main__"}:
     main()
