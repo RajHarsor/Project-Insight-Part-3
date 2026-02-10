@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "project-insight-part-3"
-version = "0.3.01"
+version = "0.4.0b"
 description = "Project INSIGHT Part 3 Application"
 readme = "README.md"
 requires-python = ">=3.12"

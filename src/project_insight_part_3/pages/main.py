@@ -124,7 +124,7 @@ def main() -> None:
     register_pages()
     
     # Add reload = False before pushing new versions to production
-    ui.run(port=8081, reload=True)
+    ui.run(port=8081, reload=False)
 
 if __name__ in {"__main__", "__mp_main__"}:
     main()
