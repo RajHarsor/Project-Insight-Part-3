@@ -15,6 +15,7 @@ from .view_edit_user_page import view_edit_user_page
 from .delete_user_page import delete_user_page
 from .send_sms_page import send_sms_page
 from .individual_compliance_check import individual_compliance_check_page
+from .compliance_report_page import compliance_report_page
 
 
 def register_pages() -> None:
@@ -26,6 +27,8 @@ def register_pages() -> None:
     ui.page('/delete_user')(delete_user_page)
     ui.page('/send_sms')(send_sms_page)
     ui.page('/individual_compliance_check')(individual_compliance_check_page)
+    ui.page('/compliance_report')(compliance_report_page)
+    
 
 
 def main_page():
@@ -124,7 +127,7 @@ def main() -> None:
     register_pages()
     
     # Add reload = False before pushing new versions to production
-    ui.run(port=8081, reload=False)
+    ui.run(port=8081, reload=True)
 
 if __name__ in {"__main__", "__mp_main__"}:
     main()

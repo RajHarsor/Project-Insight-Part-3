@@ -1,9 +1,11 @@
 import boto3
 import polars as pl
+import pytz
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
 from project_insight_part_3.methods.env_initialize import read_env_variables
 from project_insight_part_3.methods.aws_functions import get_user_info
+from collections import defaultdict
 
 import pytz
 
@@ -115,7 +117,225 @@ def match_initials_table(merged_df, participant_db_df):
 def generate_compliance_table_individual(participant_id: str):
     study_start_date, study_end_date, schedule_type = get_participant_dynamo_db(participant_id)
     
+
+def get_survey_send_times_all(input_date: str):
+    # Convert input_date to datetime object
+    input_date_dt = datetime.strptime(input_date, "%Y-%m-%d")
+    yesterday_dt = input_date_dt - timedelta(days=1)
     
+    # Create timezone-aware datetime objects
+    est = pytz.timezone('America/New_York')
+    input_date_aware = est.localize(input_date_dt)
+    yesterday_aware = est.localize(yesterday_dt)
+    
+    schedule_types = ["Early Bird Schedule", "Standard Schedule", "Night Owl Schedule"]
+    
+    env_vars = read_env_variables()
+    
+    Session = boto3.Session(
+        aws_access_key_id=env_vars['aws_access_key_id'],
+        aws_secret_access_key=env_vars['aws_secret_access_key'],
+        region_name=env_vars['region']
+    )
+    
+    cloudwatch_logs = Session.client('logs')
+    
+    early_bird_data = defaultdict(lambda: {"Survey 1": None, "Survey 2": None, "Survey 3": None, "Survey 4": None})
+    standard_data = defaultdict(lambda: {"Survey 1": None, "Survey 2": None, "Survey 3": None, "Survey 4": None})
+    night_owl_data = defaultdict(lambda: {"Survey 1": None, "Survey 2": None, "Survey 3": None, "Survey 4": None})
+    
+    
+    for schedules in schedule_types:
+        
+        if schedules == "Early Bird Schedule":
+            log_group_name_list = ['/aws/lambda/INSIGHT_Part3_earlybird_message1', 
+                                '/aws/lambda/INSIGHT_Part3_earlybird_message2',
+                                '/aws/lambda/INSIGHT_Part3_earlybird_message3',
+                                '/aws/lambda/INSIGHT_Part3_earlybird_message4']
+            
+            # Should generate one row for the input date and another with the previous dates send times
+            for log_group_name in log_group_name_list:
+                response = cloudwatch_logs.describe_log_streams(
+                    logGroupName=log_group_name,
+                    orderBy='LastEventTime',
+                    descending=True,
+                    limit=50
+                )
+                log_stream_df = pl.DataFrame(response['logStreams'])
+                
+                log_stream_df = log_stream_df.with_columns(
+                    pl.from_epoch(pl.col('firstEventTimestamp'), time_unit="ms").alias('firstEventTimestamp'),
+                    pl.from_epoch(pl.col('lastEventTimestamp'), time_unit="ms").alias('lastEventTimestamp'),
+                    pl.from_epoch(pl.col('creationTime'), time_unit="ms").alias('creationTime')
+                )
+                
+                log_stream_df = log_stream_df.with_columns(
+                    pl.col('firstEventTimestamp').dt.replace_time_zone("UTC").dt.convert_time_zone("America/New_York").alias('firstEventTimestamp'),
+                    pl.col('lastEventTimestamp').dt.replace_time_zone("UTC").dt.convert_time_zone("America/New_York").alias('lastEventTimestamp'),
+                    pl.col('creationTime').dt.replace_time_zone("UTC").dt.convert_time_zone("America/New_York").alias('creationTime')
+                )
+                
+                # Filter BEFORE converting to string - look for both yesterday and today
+                log_stream_df = log_stream_df.filter(
+                    (pl.col('firstEventTimestamp') >= yesterday_aware) &
+                    (pl.col('firstEventTimestamp') < input_date_aware + timedelta(days=1))
+                )
+                
+                # NOW convert to string after filtering
+                log_stream_df = log_stream_df.with_columns(
+                    pl.col('firstEventTimestamp').dt.strftime("%Y-%m-%dT%H:%M:%S").alias('firstEventTimestamp')
+                )
+                
+                # Put values in early_bird_dict
+                for row in log_stream_df.iter_rows(named=True):
+                    date_str = row['firstEventTimestamp'][:10]  # Extract "YYYY-MM-DD"
+                    time_str = row['firstEventTimestamp'][11:19]  # Extract "HH:MM:SS"
+                    
+                    if "message1" in log_group_name:
+                        early_bird_data[date_str]["Survey 1"] = time_str
+                    elif "message2" in log_group_name:
+                        early_bird_data[date_str]["Survey 2"] = time_str
+                    elif "message3" in log_group_name:
+                        early_bird_data[date_str]["Survey 3"] = time_str
+                    elif "message4" in log_group_name:
+                        early_bird_data[date_str]["Survey 4"] = time_str
+                        
+                
+        elif schedules == "Standard Schedule":
+            log_group_name_list = ['/aws/lambda/INSIGHT_Part3_standard_message1', 
+                                '/aws/lambda/INSIGHT_Part3_standard_message2',
+                                '/aws/lambda/INSIGHT_Part3_standard_message3',
+                                '/aws/lambda/INSIGHT_Part3_standard_message4']
+            
+            for log_group_name in log_group_name_list:
+                response = cloudwatch_logs.describe_log_streams(
+                    logGroupName=log_group_name,
+                    orderBy='LastEventTime',
+                    descending=True,
+                    limit=50
+                )
+                log_stream_df = pl.DataFrame(response['logStreams'])
+                
+                log_stream_df = log_stream_df.with_columns(
+                    pl.from_epoch(pl.col('firstEventTimestamp'), time_unit="ms").alias('firstEventTimestamp'),
+                    pl.from_epoch(pl.col('lastEventTimestamp'), time_unit="ms").alias('lastEventTimestamp'),
+                    pl.from_epoch(pl.col('creationTime'), time_unit="ms").alias('creationTime')
+                )
+                
+                log_stream_df = log_stream_df.with_columns(
+                    pl.col('firstEventTimestamp').dt.replace_time_zone("UTC").dt.convert_time_zone("America/New_York").alias('firstEventTimestamp'),
+                    pl.col('lastEventTimestamp').dt.replace_time_zone("UTC").dt.convert_time_zone("America/New_York").alias('lastEventTimestamp'),
+                    pl.col('creationTime').dt.replace_time_zone("UTC").dt.convert_time_zone("America/New_York").alias('creationTime')
+                )
+                
+                log_stream_df = log_stream_df.filter(
+                    (pl.col('firstEventTimestamp') >= yesterday_aware) &
+                    (pl.col('firstEventTimestamp') < input_date_aware + timedelta(days=1))
+                )
+                
+                log_stream_df = log_stream_df.with_columns(
+                    pl.col('firstEventTimestamp').dt.strftime("%Y-%m-%dT%H:%M:%S").alias('firstEventTimestamp')
+                )
+
+                for row in log_stream_df.iter_rows(named=True):
+                    date_str = row['firstEventTimestamp'][:10]  # Extract "YYYY-MM-DD"
+                    time_str = row['firstEventTimestamp'][11:19]  # Extract "HH:MM:SS"
+                    
+                    if "message1" in log_group_name:
+                        standard_data[date_str]["Survey 1"] = time_str
+                    elif "message2" in log_group_name:
+                        standard_data[date_str]["Survey 2"] = time_str
+                    elif "message3" in log_group_name:
+                        standard_data[date_str]["Survey 3"] = time_str
+                    elif "message4" in log_group_name:
+                        standard_data[date_str]["Survey 4"] = time_str
+                        
+        elif schedules == "Night Owl Schedule":
+            log_group_name_list = ['/aws/lambda/INSIGHT_Part3_nightowl_message1',
+                                '/aws/lambda/INSIGHT_Part3_nightowl_message2',
+                                '/aws/lambda/INSIGHT_Part3_nightowl_message3',
+                                '/aws/lambda/INSIGHT_Part3_nightowl_message4']
+            
+            for log_group_name in log_group_name_list:
+                response = cloudwatch_logs.describe_log_streams(
+                    logGroupName=log_group_name,
+                    orderBy='LastEventTime',
+                    descending=True,
+                    limit=50
+                )
+                log_stream_df = pl.DataFrame(response['logStreams'])
+                
+                log_stream_df = log_stream_df.with_columns(
+                    pl.from_epoch(pl.col('firstEventTimestamp'), time_unit="ms").alias('firstEventTimestamp'),
+                    pl.from_epoch(pl.col('lastEventTimestamp'), time_unit="ms").alias('lastEventTimestamp'),
+                    pl.from_epoch(pl.col('creationTime'), time_unit="ms").alias('creationTime')
+                )
+                
+                log_stream_df = log_stream_df.with_columns(
+                    pl.col('firstEventTimestamp').dt.replace_time_zone("UTC").dt.convert_time_zone("America/New_York").alias('firstEventTimestamp'),
+                    pl.col('lastEventTimestamp').dt.replace_time_zone("UTC").dt.convert_time_zone("America/New_York").alias('lastEventTimestamp'),
+                    pl.col('creationTime').dt.replace_time_zone("UTC").dt.convert_time_zone("America/New_York").alias('creationTime')
+                )
+                
+                log_stream_df = log_stream_df.filter(
+                    (pl.col('firstEventTimestamp') >= yesterday_aware) &
+                    (pl.col('firstEventTimestamp') < input_date_aware + timedelta(days=1))
+                )
+                
+                log_stream_df = log_stream_df.with_columns(
+                    pl.col('firstEventTimestamp').dt.strftime("%Y-%m-%dT%H:%M:%S").alias('firstEventTimestamp')
+                )
+
+                for row in log_stream_df.iter_rows(named=True):
+                    date_str = row['firstEventTimestamp'][:10]  # Extract "YYYY-MM-DD"
+                    time_str = row['firstEventTimestamp'][11:19]  # Extract "HH:MM:SS"
+                    
+                    if "message1" in log_group_name:
+                        night_owl_data[date_str]["Survey 1"] = time_str
+                    elif "message2" in log_group_name:
+                        night_owl_data[date_str]["Survey 2"] = time_str
+                    elif "message3" in log_group_name:
+                        night_owl_data[date_str]["Survey 3"] = time_str
+                    elif "message4" in log_group_name:
+                        night_owl_data[date_str]["Survey 4"] = time_str
+    
+    # Convert dicts to dataframes with proper structure
+    early_bird_rows = []
+    for date, surveys in sorted(early_bird_data.items()):
+        early_bird_rows.append({
+            "Date": date,
+            "Survey 1": surveys["Survey 1"],
+            "Survey 2": surveys["Survey 2"],
+            "Survey 3": surveys["Survey 3"],
+            "Survey 4": surveys["Survey 4"]
+        })
+    early_bird_df = pl.DataFrame(early_bird_rows)
+    
+    standard_rows = []
+    for date, surveys in sorted(standard_data.items()):
+        standard_rows.append({
+            "Date": date,
+            "Survey 1": surveys["Survey 1"],
+            "Survey 2": surveys["Survey 2"],
+            "Survey 3": surveys["Survey 3"],
+            "Survey 4": surveys["Survey 4"]
+        })
+    standard_schedule_df = pl.DataFrame(standard_rows)
+    
+    night_owl_rows = []
+    for date, surveys in sorted(night_owl_data.items()):
+        night_owl_rows.append({
+            "Date": date,
+            "Survey 1": surveys["Survey 1"],
+            "Survey 2": surveys["Survey 2"],
+            "Survey 3": surveys["Survey 3"],
+            "Survey 4": surveys["Survey 4"]
+        })
+    night_owl_df = pl.DataFrame(night_owl_rows)
+    
+    return early_bird_df, standard_schedule_df, night_owl_df
+
+
 def get_survey_send_times(participant_id: str):
     study_start_date, study_end_date, schedule_type = get_participant_dynamo_db(participant_id)
 
@@ -928,3 +1148,89 @@ def calculate_compliance_percentage(compliance_df: pl.DataFrame):
 )
 
     return compliance_df
+
+def get_participant_list(date_input: str):
+    # Convert date_input to datetime object
+    try:
+        date_input_dt = datetime.strptime(date_input, "%Y-%m-%d")
+    except ValueError:
+        print("Invalid date format. Please use YYYY-MM-DD.")
+        return None
+    
+    env_vars = read_env_variables()
+    
+    aws_access_key_id = env_vars.get('aws_access_key_id') or env_vars.get('AWS_ACCESS_KEY_ID')
+    aws_secret_access_key = env_vars.get('aws_secret_access_key') or env_vars.get('AWS_SECRET_ACCESS_KEY')
+    region_name = env_vars.get('region') or env_vars.get('REGION') or env_vars.get('AWS_DEFAULT_REGION')
+    table_name = env_vars.get('insight_p3_table_name')
+
+    try:
+        
+        Session = boto3.Session(
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+            region_name=region_name
+        )
+        
+        dynamodb = Session.resource('dynamodb')
+        table = dynamodb.Table(table_name)
+        response = table.scan()
+        data = response['Items']
+        df = pl.DataFrame(data)
+        
+        df = df.with_columns([
+            pl.col('start_date').str.strptime(pl.Date, format="%Y-%m-%d").alias('start_date'),
+            pl.col('end_date').str.strptime(pl.Date, format="%Y-%m-%d").alias('end_date')
+        ])
+        
+        # Remove leaderboard_link, phone_number, and message_randomizer columns
+        df = df.drop(['leaderboard_link', 'phone_number', 'message_randomizer'])
+        
+        # Change column order to participant_id, start_date, end_date, schedule_type
+        df = df.select(['participant_id', 'start_date', 'end_date', 'schedule_type'])
+                
+        done_with_study = df.filter(pl.col('end_date') < date_input_dt)
+        
+        currently_in_study = df.filter(
+            (pl.col('start_date') <= date_input_dt) &
+            (
+                (pl.col('end_date') >= date_input_dt) |
+                (pl.col('end_date').is_null())
+            )
+        )
+
+        not_started = df.filter(pl.col('start_date') > date_input_dt)
+        
+        # Rename columns to be more user friendly
+        done_with_study = done_with_study.rename({
+            'participant_id': 'Participant ID',
+            'start_date': 'Start Date',
+            'end_date': 'End Date',
+            'schedule_type': 'Schedule Type',
+        })
+        
+        currently_in_study = currently_in_study.rename({
+            'participant_id': 'Participant ID',
+            'start_date': 'Start Date',
+            'end_date': 'End Date',
+            'schedule_type': 'Schedule Type',
+        })
+        
+        not_started = not_started.rename({
+            'participant_id': 'Participant ID',
+            'start_date': 'Start Date',
+            'end_date': 'End Date',
+            'schedule_type': 'Schedule Type',
+        })
+    except Exception as e:
+        print(f"Error retrieving participant list: {e}")
+        df = None
+    
+    if df is not None:
+        return {
+            "done_with_study": done_with_study,
+            "currently_in_study": currently_in_study,
+            "not_started": not_started
+        }
+    else:
+        return df
