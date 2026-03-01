@@ -826,7 +826,7 @@ def compare_times(filtered_row, send_time_df, survey_number):
             if actual_time is None:
                 print(f"No actual send time recorded for {survey_col} on {survey_date}.")
                 code = "Issue"
-                continue 
+                return code
             
             survey_complete_dt = datetime.strptime(f"{survey_date} {survey_complete_time}", "%Y-%m-%d %H:%M:%S")
             actual_send_dt = datetime.strptime(f"{survey_date} {actual_time}", "%Y-%m-%d %H:%M:%S")
@@ -844,6 +844,7 @@ def compare_times(filtered_row, send_time_df, survey_number):
                 return code
             else:
                 code = "✗ MR" # Multiple Responses, none within range
+                return code
     else:
         survey_complete_time = str(filtered_row["Time"][0])
         actual_time = send_time_row[survey_col][0]
@@ -851,6 +852,7 @@ def compare_times(filtered_row, send_time_df, survey_number):
         # Check if send time is within 1 hour of survey completion time
         if actual_time is None:
             print(f"No actual send time recorded for {survey_col} on {survey_date}.")
+            code = "Issue"
             return code
         
         survey_complete_dt = datetime.strptime(f"{survey_date} {survey_complete_time}", "%Y-%m-%d %H:%M:%S")
