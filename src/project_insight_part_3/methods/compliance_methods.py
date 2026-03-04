@@ -17,8 +17,13 @@ def get_participant_initials():
     participant_db_df = pl.read_csv(participant_db_path)
     participant_db_df = participant_db_df.select([
         'Participant ID #',
-        'Initials'
+        'Initials',
+        'Age'
     ])
+    
+    # print column names to debug
+    print("Columns in participant_db_df:", participant_db_df.columns)
+    
     participant_db_df = participant_db_df.filter(pl.col('Participant ID #').is_not_null())
     
     # Capitalize initials and remove spaces from initials
@@ -1234,3 +1239,536 @@ def get_participant_list(date_input: str):
         }
     else:
         return df
+
+def compliance_table_daily_report(date_input: str, participant_df: pl.DataFrame, early_bird_df: pl.DataFrame, standard_schedule_df: pl.DataFrame, night_owl_df: pl.DataFrame, merged_df: pl.DataFrame):
+    date_input_dt = datetime.strptime(date_input, "%Y-%m-%d")
+    date_input_yesterday = date_input_dt - timedelta(days=1)
+    
+    currently_in_study = participant_df['currently_in_study']
+    
+    merged_df = merged_df.with_columns(
+        pl.col("Date/Time").dt.date().alias("Date"),
+        pl.col("Date/Time").dt.time().alias("Time")
+    )
+    
+    # Make a blank dataframe with
+    compliance_df = pl.DataFrame({
+        "Participant ID": currently_in_study["Participant ID"],
+        "Initials": pl.Series([None] * currently_in_study.height, dtype=pl.Utf8),
+        "Age": pl.Series([None] * currently_in_study.height, dtype=pl.Int64),
+        "Day in Study": [None] * currently_in_study.height,
+        "Schedule Type": currently_in_study["Schedule Type"],
+        "Start Date": currently_in_study["Start Date"],
+        "End Date": currently_in_study["End Date"],
+        "Survey 4 (Yesterday)": [None] * currently_in_study.height,
+        "Survey 1": [None] * currently_in_study.height,
+        "Survey 2": [None] * currently_in_study.height,
+        "Survey 3": [None] * currently_in_study.height,
+        "Survey 4": [None] * currently_in_study.height
+    })
+    
+    # Calculate day in the study from start date and date_input, add as a column to compliance_df
+    compliance_df = compliance_df.with_columns(
+        ((pl.lit(date_input_dt).cast(pl.Date) - pl.col("Start Date")).dt.total_days() + 1).alias("Day in Study")
+    )
+    
+    # Iterate over participants currently in study and check compliance for each survey, put results in compliance_df
+    for row in compliance_df.iter_rows(named=True):
+        # participant info
+        participant_id = row['Participant ID']
+        schedule_type = row['Schedule Type']
+        day_in_study = row['Day in Study']
+        
+        # get initials from participant_db using participant_id
+        initials_df = get_participant_initials()
+        
+         # get initials from participant_db using participant_id
+        initials_df = get_participant_initials()
+        
+        initials_row = initials_df.filter(pl.col("Participant ID #") == participant_id)
+        initials_row = initials_df.filter(pl.col("Participant ID #") == participant_id)
+        initials = initials_row.select('Initials').to_series()[0]
+        age = int(initials_row.select('Age').to_series()[0])
+
+        
+        #put initials in compliance_df
+        compliance_df = compliance_df.with_columns(
+            pl.when(pl.col("Participant ID") == participant_id)
+              .then(pl.lit(initials))
+              .otherwise(pl.col("Initials"))
+              .alias("Initials")
+        )
+        
+        # check if anyone has the same initials
+        same_initials_df = initials_df.filter(pl.col('Initials') == initials).filter(pl.col('Participant ID #') != participant_id)
+        if same_initials_df.height > 0:
+            print(f"Warning: The initials {initials} are shared by multiple participants: {same_initials_df.select('Participant ID #').to_series().to_list()}")
+            use_age = True
+            print(f"Use_age: {use_age}")
+            age = initials_row.select('Age').to_series()[0]
+        else:
+            use_age = False
+            print(f"Use_age: {use_age}")
+        
+        #put age in compliance_df
+        compliance_df = compliance_df.with_columns(
+            pl.when(pl.col("Participant ID") == participant_id)
+              .then(pl.lit(age, dtype=pl.Int64))
+              .otherwise(pl.col("Age"))
+              .alias("Age")
+        )
+        
+        # get schedule
+        if schedule_type == "Early Bird Schedule":
+            survey_send_time_df = early_bird_df
+        elif schedule_type == "Standard Schedule":
+            survey_send_time_df = standard_schedule_df
+        elif schedule_type == "Night Owl Schedule":
+            survey_send_time_df = night_owl_df
+        else:
+            print(f"Unknown schedule type {schedule_type} for participant {participant_id}. Skipping.")
+            return
+        
+        # Check survey 4 compliance for yesterday's date and put in "Survey 4 (Yesterday)" column
+        try:
+            survey_4_yesterday_send_time = survey_send_time_df.filter(pl.col("Date") == str(date_input_yesterday.date()))
+            survey_4_yesterday_was_sent = (
+                not survey_4_yesterday_send_time.is_empty() and
+                survey_4_yesterday_send_time["Survey 4"][0] is not None
+            )
+            
+            if not survey_4_yesterday_was_sent:
+                pass
+            else:
+                if use_age is True:
+                    survey_4_yesterday_row = merged_df.filter(
+                        (pl.col('Date') == date_input_yesterday) &
+                        (pl.col('Name') == initials) &
+                        (pl.col('Survey_Source') == 'Survey 4') &
+                        (pl.col('Age') == age)
+                    )
+                else:
+                    survey_4_yesterday_row = merged_df.filter(
+                        (pl.col('Date') == date_input_yesterday) &
+                        (pl.col('Name') == initials) &
+                        (pl.col('Survey_Source') == 'Survey 4')
+                    )
+                
+                if not survey_4_yesterday_row.is_empty():
+                    if len(survey_4_yesterday_row) == 1:
+                        code = compare_times(survey_4_yesterday_row, survey_send_time_df, 4)
+                        compliance_df = compliance_df.with_columns(
+                            pl.when(pl.col("Participant ID") == participant_id)
+                                .then(pl.lit(code))
+                                .otherwise(pl.col("Survey 4 (Yesterday)"))
+                                .alias("Survey 4 (Yesterday)")
+                        )
+                    elif len(survey_4_yesterday_row) > 1:
+                        print(f"Multiple entries found for Survey 4 on {date_input_yesterday} for participant {initials}. Taking the first entry.")
+                        code = compare_times(survey_4_yesterday_row, survey_send_time_df, 4)
+                        compliance_df = compliance_df.with_columns(
+                            pl.when(pl.col("Participant ID") == participant_id)
+                                .then(pl.lit(code))
+                                .otherwise(pl.col("Survey 4 (Yesterday)"))
+                                .alias("Survey 4 (Yesterday)")
+                        )
+                else:
+                    compliance_df = compliance_df.with_columns(
+                        pl.when(pl.col("Participant ID") == participant_id)
+                            .then(pl.lit("✗ NR"))
+                            .otherwise(pl.col("Survey 4 (Yesterday)"))
+                            .alias("Survey 4 (Yesterday)")
+                    )
+        except Exception as e:
+            print(f"Error checking Survey 4 compliance for participant {participant_id} on {date_input_yesterday}: {e}")
+            compliance_df = compliance_df.with_columns(
+                pl.when(pl.col("Participant ID") == participant_id)
+                    .then(pl.lit("Issue"))
+                    .otherwise(pl.col("Survey 4 (Yesterday)"))
+                    .alias("Survey 4 (Yesterday)")
+            )
+        
+        # Check Survey 1 for date_input and put results in "Survey 1" column
+        try:
+            survey_1_send_time = survey_send_time_df.filter(pl.col("Date") == str(date_input_dt.date()))
+            survey_1_was_sent = (
+                not survey_1_send_time.is_empty() and
+                survey_1_send_time["Survey 1"][0] is not None
+            )
+            
+            if not survey_1_was_sent:
+                pass
+            else:
+                if (day_in_study >= 1 and day_in_study <= 4) or (day_in_study == 13 or day_in_study == 14):
+                    if use_age is True:
+                        survey_1b_row = merged_df.filter(
+                            (pl.col('Date') == date_input_dt) &
+                            (pl.col('Name') == initials) &
+                            (pl.col('Survey_Source') == 'Survey 1B') &
+                            (pl.col('Age') == age)
+                        )
+                    else:
+                        survey_1b_row = merged_df.filter(
+                            (pl.col('Date') == date_input_dt) &
+                            (pl.col('Name') == initials) &
+                            (pl.col('Survey_Source') == 'Survey 1B')
+                        )
+                    
+                    if not survey_1b_row.is_empty():
+                        if len(survey_1b_row) == 1:
+                            code = compare_times(survey_1b_row, survey_send_time_df, 1)
+                            compliance_df = compliance_df.with_columns(
+                                pl.when(pl.col("Participant ID") == participant_id)
+                                    .then(pl.lit(code))
+                                    .otherwise(pl.col("Survey 1"))
+                                    .alias("Survey 1")
+                            )
+                        elif len(survey_1b_row) > 1:
+                            print(f"Multiple entries found for Survey 1 on {date_input} for participant {initials}. Taking the first entry.")
+                            code = compare_times(survey_1b_row, survey_send_time_df, 1)
+                            compliance_df = compliance_df.with_columns(
+                                pl.when(pl.col("Participant ID") == participant_id)
+                                    .then(pl.lit(code))
+                                    .otherwise(pl.col("Survey 1"))
+                                    .alias("Survey 1")
+                            )
+                    else:
+                        compliance_df = compliance_df.with_columns(
+                            pl.when(pl.col("Participant ID") == participant_id)
+                                .then(pl.lit("✗ NR"))
+                                .otherwise(pl.col("Survey 1"))
+                                .alias("Survey 1")
+                        )
+                elif day_in_study >= 5 and day_in_study <= 12:
+                    if use_age is True:
+                        survey_1a_row = merged_df.filter(
+                            (pl.col('Date') == date_input_dt) &
+                            (pl.col('Name') == initials) &
+                            (pl.col('Survey_Source') == 'Survey 1A') &
+                            (pl.col('Age') == age)
+                        )
+                    else:
+                        survey_1a_row = merged_df.filter(
+                            (pl.col('Date') == date_input_dt) &
+                            (pl.col('Name') == initials) &
+                            (pl.col('Survey_Source') == 'Survey 1A')
+                        )
+                        
+                    if not survey_1a_row.is_empty():
+                        print(f"Survey 1 completed on {date_input_dt}")
+                        if len(survey_1a_row) == 1:
+                            print(f"Found one entry for Survey 1 on {date_input_dt}.")
+                            date = survey_1a_row["Date"][0]
+                            time = survey_1a_row["Time"][0]
+                            name = survey_1a_row["Name"][0]
+                            
+                            code = compare_times(survey_1a_row, survey_send_time_df, 1)
+                            # put values in compliance_df
+                            compliance_df = compliance_df.with_columns(
+                                pl.when(pl.col("Participant ID") == participant_id)
+                                    .then(pl.lit(code))
+                                    .otherwise(pl.col("Survey 1"))
+                                    .alias("Survey 1")
+                            )
+                        elif len(survey_1a_row) > 1:
+                            print(f"Multiple entries found for Survey 1 on {date_input_dt} for participant {initials}. Taking the first entry.")
+                            date = survey_1a_row["Date"][0]
+                            name = survey_1a_row["Name"][0]
+                            
+                            code = compare_times(survey_1a_row, survey_send_time_df, 1)
+                            # put values in compliance_df
+                            compliance_df = compliance_df.with_columns(
+                                pl.when(pl.col("Participant ID") == participant_id)
+                                    .then(pl.lit(code))
+                                    .otherwise(pl.col("Survey 1"))
+                                    .alias("Survey 1")
+                            )
+                    else:
+                        print(f"No entry found for Survey 1 on {date_input_dt} for participant {initials}.")
+                        compliance_df = compliance_df.with_columns(
+                            pl.when(pl.col("Participant ID") == participant_id)
+                                .then(pl.lit("✗ NR"))
+                                .otherwise(pl.col("Survey 1"))
+                                .alias("Survey 1")
+                        )
+        except Exception as e:
+            print(f"Error processing Survey 1 for participant {initials}: {e}")
+        
+        # Check Survey 2 for date_input and put results in "Survey 2" column
+        try:
+            survey_2_send_time = survey_send_time_df.filter(pl.col("Date") == str(date_input_dt.date()))
+            survey_2_was_sent = (
+                not survey_2_send_time.is_empty() and
+                survey_2_send_time["Survey 2"][0] is not None
+            )
+            
+            if not survey_2_was_sent:
+                pass
+            else:
+                if (day_in_study >= 1 and day_in_study <= 4) or (day_in_study == 13 or day_in_study == 14):
+                    if use_age is True:
+                        survey_2b_row = merged_df.filter(
+                            (pl.col('Date') == date_input_dt) &
+                            (pl.col('Name') == initials) &
+                            (pl.col('Survey_Source') == 'Survey 2B') &
+                            (pl.col('Age') == age)
+                        )
+                    else:
+                        survey_2b_row = merged_df.filter(
+                            (pl.col('Date') == date_input_dt) &
+                            (pl.col('Name') == initials) &
+                            (pl.col('Survey_Source') == 'Survey 2B')
+                        )
+                    
+                    if not survey_2b_row.is_empty():
+                        print(f"Survey 2 completed on {date_input_dt}")
+                        if len(survey_2b_row) == 1:
+                            print(f"Found one entry for Survey 2 on {date_input_dt}.")
+                            date = survey_2b_row["Date"][0]
+                            time = survey_2b_row["Time"][0]
+                            name = survey_2b_row["Name"][0]
+                            
+                            code = compare_times(survey_2b_row, survey_send_time_df, 2)
+                            # put values in compliance_df
+                            compliance_df = compliance_df.with_columns(
+                                pl.when(pl.col("Participant ID") == participant_id)
+                                    .then(pl.lit(code))
+                                    .otherwise(pl.col("Survey 2"))
+                                    .alias("Survey 2")
+                            )
+                        elif len(survey_2b_row) > 1:
+                            print(f"Multiple entries found for Survey 2 on {date_input_dt} for participant {initials}. Taking the first entry.")
+                            date = survey_2b_row["Date"][0]
+                            name = survey_2b_row["Name"][0]
+                            
+                            code = compare_times(survey_2b_row, survey_send_time_df, 2)
+                            # put values in compliance_df
+                            compliance_df = compliance_df.with_columns(
+                                pl.when(pl.col("Participant ID") == participant_id)
+                                    .then(pl.lit(code))
+                                    .otherwise(pl.col("Survey 2"))
+                                    .alias("Survey 2")
+                            )
+                    else:
+                        print(f"No entry found for Survey 2 on {date_input_dt} for participant {initials}.")
+                        compliance_df = compliance_df.with_columns(
+                            pl.when(pl.col("Participant ID") == participant_id)
+                                .then(pl.lit("✗ NR"))
+                                .otherwise(pl.col("Survey 2"))
+                                .alias("Survey 2")
+                        )
+                elif (day_in_study >= 5 and day_in_study <= 12):
+                    if use_age is True:
+                        survey_2a_row = merged_df.filter(
+                            (pl.col('Date') == date_input_dt) &
+                            (pl.col('Name') == initials) &
+                            (pl.col('Survey_Source') == 'Survey 2A') &
+                            (pl.col('Age') == age)
+                        )
+                    else:
+                        survey_2a_row = merged_df.filter(
+                            (pl.col('Date') == date_input_dt) &
+                            (pl.col('Name') == initials) &
+                            (pl.col('Survey_Source') == 'Survey 2A')
+                        )
+                        
+                    if not survey_2a_row.is_empty():
+                        print(f"Survey 2 completed on {date_input_dt}")
+                        if len(survey_2a_row) == 1:
+                            print(f"Found one entry for Survey 2 on {date_input_dt}.")
+                            date = survey_2a_row["Date"][0]
+                            time = survey_2a_row["Time"][0]
+                            name = survey_2a_row["Name"][0]
+                            
+                            code = compare_times(survey_2a_row, survey_send_time_df, 2)
+                            # put values in compliance_df
+                            compliance_df = compliance_df.with_columns(
+                                pl.when(pl.col("Participant ID") == participant_id)
+                                    .then(pl.lit(code))
+                                    .otherwise(pl.col("Survey 2"))
+                                    .alias("Survey 2")
+                            )
+                        elif len(survey_2a_row) > 1:
+                            print(f"Multiple entries found for Survey 2 on {date_input_dt} for participant {initials}. Taking the first entry.")
+                            date = survey_2a_row["Date"][0]
+                            name = survey_2a_row["Name"][0]
+                            
+                            code = compare_times(survey_2a_row, survey_send_time_df, 2)
+                            # put values in compliance_df
+                            compliance_df = compliance_df.with_columns(
+                                pl.when(pl.col("Participant ID") == participant_id)
+                                    .then(pl.lit(code))
+                                    .otherwise(pl.col("Survey 2"))
+                                    .alias("Survey 2")
+                            )
+                    else:
+                        print(f"No entry found for Survey 2 on {date_input_dt} for participant {initials}.")
+                        compliance_df = compliance_df.with_columns(
+                            pl.when(pl.col("Participant ID") == participant_id)
+                                .then(pl.lit("✗ NR"))
+                                .otherwise(pl.col("Survey 2"))
+                                .alias("Survey 2")
+                        )
+        except Exception as e:
+            print(f"Error processing Survey 2 for participant {initials}: {e}")
+        
+        # Check Survey 3 for date_input and put results in "Survey 3" column
+        try:
+            survey_3_send_time = survey_send_time_df.filter(pl.col("Date") == str(date_input_dt.date()))
+            survey_3_was_sent = (
+                not survey_3_send_time.is_empty() and
+                survey_3_send_time["Survey 3"][0] is not None
+            )
+            
+            if not survey_3_was_sent:
+                pass
+            else:
+                if day_in_study >= 1 and day_in_study <= 14:
+                    if use_age is True:
+                        survey_3_row = merged_df.filter(
+                            (pl.col('Date') == date_input_dt) &
+                            (pl.col('Name') == initials) &
+                            (pl.col('Survey_Source') == 'Survey 3') &
+                            (pl.col('Age') == age)
+                        )
+                    else:
+                        survey_3_row = merged_df.filter(
+                            (pl.col('Date') == date_input_dt) &
+                            (pl.col('Name') == initials) &
+                            (pl.col('Survey_Source') == 'Survey 3')
+                        )
+                    if not survey_3_row.is_empty():
+                        print(f"Survey 3 completed on {date_input_dt}")
+                        if len(survey_3_row) == 1:
+                            print(f"Found one entry for Survey 3 on {date_input_dt}.")
+                            date = survey_3_row["Date"][0]
+                            time = survey_3_row["Time"][0]
+                            name = survey_3_row["Name"][0]
+                            
+                            code = compare_times(survey_3_row, survey_send_time_df, 3)
+                            # put values in compliance_df
+                            compliance_df = compliance_df.with_columns(
+                                pl.when(pl.col("Participant ID") == participant_id)
+                                    .then(pl.lit(code))
+                                    .otherwise(pl.col("Survey 3"))
+                                    .alias("Survey 3")
+                            )
+                        elif len(survey_3_row) > 1:
+                            print(f"Multiple entries found for Survey 3 on {date_input_dt} for participant {initials}. Taking the first entry.")
+                            date = survey_3_row["Date"][0]
+                            name = survey_3_row["Name"][0]
+                            
+                            code = compare_times(survey_3_row, survey_send_time_df, 3)
+                            # put values in compliance_df
+                            compliance_df = compliance_df.with_columns(
+                                pl.when(pl.col("Participant ID") == participant_id)
+                                    .then(pl.lit(code))
+                                    .otherwise(pl.col("Survey 3"))
+                                    .alias("Survey 3")
+                            )
+                    else:
+                        print(f"No entry found for Survey 3 on {date_input_dt} for participant {initials}.")
+                        compliance_df = compliance_df.with_columns(
+                            pl.when(pl.col("Participant ID") == participant_id)
+                                .then(pl.lit("✗ NR"))
+                                .otherwise(pl.col("Survey 3"))
+                                .alias("Survey 3")
+                        )
+        except Exception as e:
+            print(f"Error processing Survey 3 for participant {initials}: {e}")
+            
+        # Check Survey 4 for date_input and put results in "Survey 4" column
+        try:
+            survey_4_send_time = survey_send_time_df.filter(pl.col("Date") == str(date_input_dt.date()))
+            survey_4_was_sent = (
+                not survey_4_send_time.is_empty() and
+                survey_4_send_time["Survey 4"][0] is not None
+        )
+            if not survey_4_was_sent:
+                    pass
+            else:
+                if day_in_study >= 1 and day_in_study <= 14:
+                    if use_age is True:
+                        survey_4_row = merged_df.filter(
+                            (pl.col('Date') == date_input_dt) &
+                            (pl.col('Name') == initials) &
+                            (pl.col('Survey_Source') == 'Survey 4') &
+                            (pl.col('Age') == age)
+                        )
+                    else:
+                        survey_4_row = merged_df.filter(
+                            (pl.col('Date') == date_input_dt) &
+                            (pl.col('Name') == initials) &
+                            (pl.col('Survey_Source') == 'Survey 4')
+                        )
+                    if not survey_4_row.is_empty():
+                        print(f"Survey 4 completed on {date_input_dt}")
+                        if len(survey_4_row) == 1:
+                            print(f"Found one entry for Survey 4 on {date_input_dt}.")
+                            date = survey_4_row["Date"][0]
+                            time = survey_4_row["Time"][0]
+                            name = survey_4_row["Name"][0]
+                            
+                            code = compare_times(survey_4_row, survey_send_time_df, 4)
+                            # put values in compliance_df
+                            compliance_df = compliance_df.with_columns(
+                                pl.when(pl.col("Participant ID") == participant_id)
+                                    .then(pl.lit(code))
+                                    .otherwise(pl.col("Survey 4"))
+                                    .alias("Survey 4")
+                            )
+                        elif len(survey_4_row) > 1:
+                            print(f"Multiple entries found for Survey 4 on {date_input_dt} for participant {initials}. Taking the first entry.")
+                            date = survey_4_row["Date"][0]
+                            name = survey_4_row["Name"][0]
+                            
+                            code = compare_times(survey_4_row, survey_send_time_df, 4)
+                            # put values in compliance_df
+                            compliance_df = compliance_df.with_columns(
+                                pl.when(pl.col("Participant ID") == participant_id)
+                                    .then(pl.lit(code))
+                                    .otherwise(pl.col("Survey 4"))
+                                    .alias("Survey 4")
+                            )
+                    else:
+                        print(f"No entry found for Survey 4 on {date_input_dt} for participant {initials}.")
+                        compliance_df = compliance_df.with_columns(
+                            pl.when(pl.col("Participant ID") == participant_id)
+                                .then(pl.lit("✗ NR"))
+                                .otherwise(pl.col("Survey 4"))
+                                .alias("Survey 4")
+                        )
+        except Exception as e:
+            print(f"Error processing Survey 4 for participant {initials}: {e}")
+    
+    return compliance_df
+
+def contact_checks(compliance_df: pl.DataFrame):
+    did_not_do_lb = []
+    # Check participants in days 5-12 who did not complete Survey 1 (NR), put participant_id in did_not_do_lb list
+    for row in compliance_df.iter_rows(named=True):
+        participant_id = row['Participant ID']
+        day_in_study = row['Day in Study']
+        survey_1_status = row['Survey 1']
+        
+        if day_in_study >= 5 and day_in_study <= 12 and survey_1_status == "✗ NR":
+            did_not_do_lb.append(participant_id)
+    
+    two_NRs_in_a_row = []
+    # Check if any participants have two consecutive NRs across all surveys in compliance_df, put participant_id in two_NRs_in_a_row list
+    for row in compliance_df.iter_rows(named=True):
+        participant_id = row['Participant ID']
+        survey_4_yesterday_status = row['Survey 4 (Yesterday)']
+        survey_1_status = row['Survey 1']
+        survey_2_status = row['Survey 2']
+        survey_3_status = row['Survey 3']
+        survey_4_status = row['Survey 4']
+        
+        survey_statuses = [survey_4_yesterday_status,survey_1_status, survey_2_status, survey_3_status, survey_4_status]
+        
+        for i in range(len(survey_statuses) - 1):
+            if survey_statuses[i] == "✗ NR" and survey_statuses[i + 1] == "✗ NR":
+                two_NRs_in_a_row.append(participant_id)
+                break
+        
+    return did_not_do_lb, two_NRs_in_a_row
