@@ -17,7 +17,7 @@ def menu():
                 with ui.item_section().props('side'):
                     ui.icon('keyboard_arrow_right')
                 with ui.menu().props('anchor="top end" self="top start" auto-close'):
-                    ui.menu_item("Daily Report")
+                    ui.menu_item("Daily Report", on_click=lambda: ui.navigate.to('/compliance_report'))
                     ui.menu_item("Check Individual Compliance", on_click=lambda: ui.navigate.to('/individual_compliance_check'))
             
 
