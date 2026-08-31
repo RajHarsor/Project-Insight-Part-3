@@ -32,7 +32,7 @@ def register_pages() -> None:
 
 
 def main_page():
-    top_bar('Project INSIGHT Part 3 Dashboard')
+    top_bar('Project INSIGHT Part 4 Dashboard')
 
     with ui.row().classes('w-full justify-center gap-10'):
             

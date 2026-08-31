@@ -48,7 +48,7 @@ def pie_chart_progress() -> go.Figure:
         not_started_count = df.filter(pl.col('start_date') > dt.date.today()).height
         in_progress_count = df.filter((pl.col('start_date') <= dt.date.today()) & (pl.col('end_date') >= dt.date.today())).height
         completed_count = df.filter(pl.col('end_date') < dt.date.today()).height
-        participants_left = 65 - (not_started_count + in_progress_count + completed_count)
+        participants_left = 200 - (not_started_count + in_progress_count + completed_count)
 
         # Create pie chart
         labels = ['Pending Start', 'In Progress', 'Completed', 'Participants Left to Recruit']
