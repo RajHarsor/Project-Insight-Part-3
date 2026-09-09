@@ -3,9 +3,9 @@ requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
 [project]
-name = "project-insight-part-3"
+name = "project-insight-"
 version = "0.5.1b"
-description = "Project INSIGHT Part 3 Application"
+description = "Project INSIGHT Application"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -23,7 +23,7 @@ dependencies = [
 ]
 
 [project.scripts]
-insight-part3 = "project_insight_part_3.pages.main:main"
+project-insight = "project_insight_part_3.pages.main:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/project_insight_part_3"]
