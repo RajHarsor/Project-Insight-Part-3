@@ -3,8 +3,8 @@ requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
 [project]
-name = "project-insight-"
-version = "0.5.1b"
+name = "project-insight"
+version = "4.1.0"
 description = "Project INSIGHT Application"
 readme = "README.md"
 requires-python = ">=3.12"
